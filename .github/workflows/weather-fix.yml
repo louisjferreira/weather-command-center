@@ -1,0 +1,57 @@
+name: Apply Weather Card Fixes
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: "!startsWith(github.event.head_commit.message, 'fix: weather card')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch layout and wind direction
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/weather-command-center.js')
+          s=p.read_text()
+          replacements={
+            '.wind{display:grid;grid-template-columns:1fr 1.45fr 1fr;gap:4px;align-items:center}': '.wind{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:4px;align-items:center}',
+            '.windbox{height:220px;display:flex;align-items:center;justify-content:center;position:relative}': '.windbox{height:180px;display:flex;align-items:center;justify-content:center;position:relative}',
+            '.windbox svg{width:220px;height:220px;overflow:visible}': '.windbox svg{width:180px;height:180px;overflow:visible}',
+            '.moon-panel{position:absolute;top:24px;right:24px;width:520px;min-height:190px;': '.moon-panel{position:absolute;top:24px;right:24px;width:470px;min-height:175px;',
+            '.moon-body{display:grid;grid-template-columns:120px 1fr;gap:18px;align-items:center}': '.moon-body{display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:center}',
+            '.moon-orb{width:112px;height:112px;': '.moon-orb{width:84px;height:84px;overflow:hidden;',
+            '.moon-row{display:flex;justify-content:space-between;gap:15px;padding:6px 0;': '.moon-row{display:flex;justify-content:space-between;gap:15px;padding:4px 0;',
+            '.moon-stat{padding:7px 9px;': '.moon-stat{padding:6px 8px;',
+            '.moon-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}': '.moon-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:7px}',
+            "const sourceCompass=deg==null?'—':['N','NE','E','SE','S','SW','W','NW'][Math.round(deg/45)%8];const compass=deg==null?'—':['S','SW','W','NW','N','NE','E','SE'][Math.round(deg/45)%8];": "const sourceCompass=deg==null?'—':['N','NE','E','SE','S','SW','W','NW'][Math.round(deg/45)%8];const travelDeg=deg==null?null:(deg+180)%360;const compass=travelDeg==null?'—':['N','NE','E','SE','S','SW','W','NW'][Math.round(travelDeg/45)%8];",
+            "set('dir',deg==null?'—':Math.round(deg)+'°');": "set('dir',travelDeg==null?'—':Math.round(travelDeg)+'°');",
+            "set('wdir',compass);set('wsource',deg==null?'—':'FROM '+compass);": "set('wdir',compass);set('wsource',sourceCompass==='—'?'—':'FROM '+sourceCompass);",
+            "set('windread',deg==null?'—':Math.round(deg)+'° · '+windVal+' '+windUnit);": "set('windread',travelDeg==null?'—':Math.round(travelDeg)+'° · '+windVal+' '+windUnit);",
+            "const d=deg==null?0:((deg%360)+360)%360": "const d=travelDeg==null?0:((travelDeg%360)+360)%360",
+            "'+(deg==null?'—':Math.round(deg)+'°')+'": "'+(travelDeg==null?'—':Math.round(travelDeg)+'°')+'",
+            "'+compass+'</text></svg>'": "'+compass+'</text></svg>'"
+          }
+          for a,b in replacements.items():
+              if a not in s and a != "'+compass+'</text></svg>'":
+                  print('MISSING:',a[:100])
+              s=s.replace(a,b)
+          # Correct the source label to use the meteorological FROM direction.
+          s=s.replace("set('wsource',deg==null?'—':'FROM '+compass);", "set('wsource',sourceCompass==='—'?'—':'FROM '+sourceCompass);")
+          p.write_text(s)
+          PY
+      - name: Build dist
+        run: node scripts/build.mjs
+      - name: Commit fixes and remove one-shot workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/weather-command-center.js dist/weather-command-center.js .github/workflows/weather-fix.yml
+          git rm .github/workflows/weather-fix.yml
+          git commit -m 'fix: weather card layout and wind direction'
+          git push
