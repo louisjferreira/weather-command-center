@@ -97,7 +97,7 @@ The current build helper copies the source into the distributable file. As the p
 
 ## Home Assistant compatibility
 
-The card uses the Home Assistant frontend `hass` object and the `weather.get_forecasts` service rather than relying on the deprecated weather forecast state attribute. Home Assistant's current weather architecture exposes forecasts through the separate forecast API. cite_placeholder
+The card uses the Home Assistant frontend `hass` object and the `weather.get_forecasts` service rather than relying on the deprecated weather forecast state attribute. Home Assistant's current weather architecture exposes forecasts through the separate forecast API.
 
 ## License
 
