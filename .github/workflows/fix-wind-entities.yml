@@ -1,0 +1,36 @@
+name: Fix Wind Entity Discovery
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fix source discovery fallback
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/weather-command-center.js')
+          s = p.read_text()
+          old = "e(exp,ps){if(exp)return exp;if(!this.c.auto_discover||!this.h?.states)return;"
+          new = "e(exp,ps){if(exp&&this.s(exp)&&!['unknown','unavailable'].includes(this.s(exp).state))return exp;if(!this.c.auto_discover||!this.h?.states)return;"
+          if old not in s:
+              raise SystemExit('Expected discovery function not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+          node --check src/weather-command-center.js
+          node scripts/build.mjs
+          node --check dist/weather-command-center.js
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/weather-command-center.js dist/weather-command-center.js
+          git commit -m "Fix automatic wind entity discovery"
+          git push
