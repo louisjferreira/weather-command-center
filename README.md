@@ -2,40 +2,64 @@
 
 A full-screen, responsive weather command center card for Home Assistant.
 
+[![HACS](https://img.shields.io/badge/HACS-Dashboard-41BDF5.svg)](https://www.hacs.xyz/)
+
 ## Status
 
-**Early development / v0.1.0**
+**Early development — v0.1.0**
 
-The project is being developed as a standalone Lovelace custom card with HACS distribution in mind.
+The repository is public and structured as a Home Assistant HACS Dashboard element. The first milestone establishes the card architecture, responsive presentation, Home Assistant weather data integration and HACS-ready distribution.
 
-## Planned features
+## Current features
 
-- Full-screen responsive weather dashboard
-- Current conditions
-- Weather station data
-- Dynamic weather presentation
+- Responsive weather command-center layout
+- Current weather condition and temperature
+- Feels-like temperature
+- Humidity, pressure, wind, direction and UV values
+- Home Assistant weather forecast API integration
+- Up to 7 daily forecast tiles
+- Dynamic weather-themed backgrounds
+- Mobile/tablet responsive layout
+- Configurable Home Assistant entity mapping
+- Home Assistant card-picker suggestion for weather entities
+- HACS-compatible `dist/` distribution
+
+## Roadmap
+
+The larger command center will add:
+
+- Weather-station-specific panels
 - Hourly forecast
-- Daily forecast
 - Temperature and precipitation graphs
-- Wind information and wind rose
-- Radar integration
-- Configurable Home Assistant entities
-- Graceful handling of unavailable entities
-- HACS installation
+- Wind rose
+- Radar map and radar playback
+- Rich weather-condition backgrounds/animations
+- More detailed observation panels
+- Better visual configuration/editor support
+- Release builds and versioned HACS releases
 
 ## Installation
 
-### HACS
+### HACS — Custom Repository
 
-This repository is intended to be installed through HACS as a Lovelace dashboard resource.
+The repository can be installed immediately through HACS as a custom Dashboard repository:
 
-Until the project is released through the normal HACS discovery process, add this repository as a **Custom repository** in HACS under **Dashboard**.
+1. Open **HACS**.
+2. Open **Dashboard**.
+3. Open the three-dot menu and select **Custom repositories**.
+4. Add `louisjferreira/weather-command-center`.
+5. Select **Dashboard** as the repository type.
+6. Install **Weather Command Center**.
+
+The normal HACS discovery/listing process is a separate step and will be pursued once the card reaches a suitable public release.
 
 ### Manual
 
-Copy `dist/weather-command-center.js` into your Home Assistant `www` directory and add it as a Lovelace JavaScript module resource.
+Copy `dist/weather-command-center.js` into the Home Assistant `www` directory and register it as a Lovelace JavaScript module resource.
 
-## Basic configuration
+## Configuration
+
+Minimal configuration:
 
 ```yaml
 type: custom:weather-command-center
@@ -43,11 +67,37 @@ weather_entity: weather.home
 name: Home Weather
 ```
 
-The card is designed so additional entity mappings can be added without changing the card itself.
+Optional entity mappings:
+
+```yaml
+type: custom:weather-command-center
+weather_entity: weather.forecast_home
+name: Home Weather
+location: Marondera
+temperature_entity: sensor.outside_temperature
+humidity_entity: sensor.outside_humidity
+pressure_entity: sensor.outside_pressure
+wind_speed_entity: sensor.outside_wind_speed
+wind_direction_entity: sensor.outside_wind_direction
+uv_entity: sensor.uv_index
+forecast_days: 7
+```
+
+The card will use attributes from the configured `weather_entity` where dedicated sensor entities are not supplied.
 
 ## Development
 
-Source code lives in `src/` and the distributable browser file lives in `dist/`.
+```text
+src/     Source implementation
+dist/    HACS/browser distribution
+scripts/ Build helpers
+```
+
+The current build helper copies the source into the distributable file. As the project grows, this will be replaced with a proper production build/minification pipeline.
+
+## Home Assistant compatibility
+
+The card uses the Home Assistant frontend `hass` object and the `weather.get_forecasts` service rather than relying on the deprecated weather forecast state attribute. Home Assistant's current weather architecture exposes forecasts through the separate forecast API. cite_placeholder
 
 ## License
 
