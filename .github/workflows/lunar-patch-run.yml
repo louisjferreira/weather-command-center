@@ -1,0 +1,48 @@
+name: Lunar Patch Runner
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'Add lunar phase panel') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Patch source and build
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/weather-command-center.js')
+          s=p.read_text()
+          style_old='.foot{text-align:right;font-size:10px;opacity:.48;margin-top:14px}'
+          style_new=style_old+'.moon-panel{position:absolute;top:24px;right:24px;width:430px;min-height:150px;padding:16px 18px;border-radius:18px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(14px);box-sizing:border-box}.moon-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.moon-title{font-size:10px;letter-spacing:.18em;opacity:.72;font-weight:700}.moon-phase{display:grid;grid-template-columns:78px 1fr;gap:14px;align-items:center}.moon-icon{font-size:58px;line-height:1;text-align:center}.moon-name{font-size:18px;font-weight:600}.moon-sub{font-size:11px;opacity:.65;margin-top:4px}.moon-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}.moon-stat{padding:8px 9px;border-radius:10px;background:rgba(0,0,0,.11);border:1px solid rgba(255,255,255,.06)}.moon-stat span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.1em;opacity:.58;margin-bottom:4px}.moon-stat strong{font-size:12px;font-weight:600}@media(max-width:1000px){.moon-panel{position:relative;top:auto;right:auto;width:auto;margin:0 8px 13px}.hero{min-height:155px}}@media(max-width:700px){.moon-panel{margin:0 0 13px}.moon-phase{grid-template-columns:60px 1fr}.moon-icon{font-size:46px}.moon-stats{grid-template-columns:1fr 1fr}}'
+          if style_old not in s: raise SystemExit('Style anchor not found')
+          if '.moon-panel{' not in s: s=s.replace(style_old,style_new,1)
+          anchor='ids(){return{'
+          method='''moonInfo(){const now=new Date(),cycle=29.530588853,epoch=Date.UTC(2000,0,6,18,14,0),days=(now.getTime()-epoch)/86400000,age=((days%cycle)+cycle)%cycle,phase=age/cycle,illum=(1-Math.cos(2*Math.PI*phase))/2,names=['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous','Full Moon','Waning Gibbous','Last Quarter','Waning Crescent'],icons=['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'],idx=Math.round(phase*8)%8,event=idx<4?'Full Moon':'New Moon',target=event==='Full Moon'?.5:0;let eventDelta=((target-phase+1)%1)*cycle;if(eventDelta<.01)eventDelta=cycle;return{age,illum,name:names[idx],icon:icons[idx],next:event,daysToNext:eventDelta<1?'Today':`${Math.round(eventDelta)} days`,percent:Math.round(illum*100)}}
+          updateMoonPanel(){if(!this.root)return;const shell=this.root.querySelector('.shell');if(!shell)return;let el=this.root.querySelector('.moon-panel');if(!el){el=document.createElement('div');el.className='moon-panel z';shell.appendChild(el)}const m=this.moonInfo();el.innerHTML=`<div class="moon-head"><div class="moon-title">MOON & ATMOSPHERE</div><div class="sub">LIVE ASTRONOMICAL DATA</div></div><div class="moon-phase"><div class="moon-icon">${m.icon}</div><div><div class="moon-name">${m.name}</div><div class="moon-sub">${m.percent}% illuminated · Moon age ${m.age.toFixed(1)} days</div></div></div><div class="moon-stats"><div class="moon-stat"><span>Illumination</span><strong>${m.percent}%</strong></div><div class="moon-stat"><span>Age</span><strong>${m.age.toFixed(1)} days</strong></div><div class="moon-stat"><span>Next ${m.next}</span><strong>~${m.daysToNext}</strong></div></div>`}
+          '''
+          if 'moonInfo(){' not in s:
+              if anchor not in s: raise SystemExit('Method anchor not found')
+              s=s.replace(anchor,method+anchor,1)
+          old="set hass(h){this.h=h;if(!this.rendered){this.render();this.rendered=true;this.loadForecast();this.loadRadar()}else this.update()}"
+          new="set hass(h){this.h=h;if(!this.rendered){this.render();this.rendered=true;this.updateMoonPanel();this.loadForecast();this.loadRadar()}else{this.update();this.updateMoonPanel()}}"
+          if old not in s: raise SystemExit('set hass anchor not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+          node --check src/weather-command-center.js
+          node scripts/build.mjs
+          node --check dist/weather-command-center.js
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/weather-command-center.js dist/weather-command-center.js
+          git commit -m "Add lunar phase panel"
+          git push
