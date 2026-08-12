@@ -1,0 +1,9 @@
+{
+  "name": "weather-command-center",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Home Assistant Weather Command Center custom card",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  }
+}
