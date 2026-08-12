@@ -1,8 +1,11 @@
-name: Validate
+name: Validate and Build
 
 on:
   push:
   pull_request:
+
+permissions:
+  contents: write
 
 jobs:
   validate:
@@ -19,5 +22,17 @@ jobs:
       - name: Check source syntax
         run: node --check src/weather-command-center.js
 
+      - name: Build distribution
+        run: node scripts/build.mjs
+
       - name: Check distribution syntax
         run: node --check dist/weather-command-center.js
+
+      - name: Commit generated distribution
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/weather-command-center.js
+          git diff --cached --quiet || git commit -m "Build distribution"
+          git push
