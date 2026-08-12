@@ -1,0 +1,38 @@
+name: Lunar Timing Finalizer
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: ${{ !contains(github.event.head_commit.message, 'LUNAR_DONE') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Correct next lunar event calculation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/weather-command-center.js')
+          s=p.read_text()
+          old="event=idx<4?'Full Moon':'New Moon',target=event==='Full Moon'?.5:0"
+          new="event=phase<.5?'Full Moon':'New Moon',target=event==='Full Moon'?.5:0"
+          if old not in s:
+              raise SystemExit('Expected lunar event expression not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+          node --check src/weather-command-center.js
+          node scripts/build.mjs
+          node --check dist/weather-command-center.js
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/weather-command-center.js dist/weather-command-center.js
+          git commit -m "LUNAR_DONE - Add lunar phase panel - Fix lunar event timing"
+          git push
