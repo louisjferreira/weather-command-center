@@ -1,0 +1,47 @@
+name: Align weather map and wind panels
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: "!startsWith(github.event.head_commit.message, 'fix: align weather map and wind panels')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Adjust panel layout
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/weather-command-center.js')
+          s = p.read_text()
+          replacements = {
+            '.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:13px;margin-bottom:13px}':
+            '.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:13px;margin-bottom:13px;align-items:stretch}',
+            '.panel{min-height:280px}':
+            '.panel{min-height:280px;height:100%;box-sizing:border-box}',
+            '.map{height:225px;border-radius:13px;overflow:hidden;background:#263747;position:relative}':
+            '.map{height:260px;border-radius:13px;overflow:hidden;background:#263747;position:relative}',
+            '.empty{height:225px;border-radius:13px;background:rgba(0,0,0,.12);':
+            '.empty{height:260px;border-radius:13px;background:rgba(0,0,0,.12);',
+          }
+          for old, new in replacements.items():
+              if old not in s:
+                  raise SystemExit(f'Expected layout fragment not found: {old[:80]}')
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Build distribution
+        run: node scripts/build.mjs
+      - name: Commit changes and remove workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/weather-command-center.js dist/weather-command-center.js
+          git rm .github/workflows/weather-layout-align.yml
+          git commit -m 'fix: align weather map and wind panels'
+          git push
