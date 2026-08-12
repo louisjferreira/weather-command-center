@@ -1,0 +1,81 @@
+name: Apply dashboard reference layout
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: "!startsWith(github.event.head_commit.message, 'fix: apply dashboard reference layout')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply reference layout to source and distribution
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          files = [
+              Path('src/weather-command-center.js'),
+              Path('dist/weather-command-center.js'),
+          ]
+
+          replacements = [
+              (
+                  '.hero{display:flex;align-items:end;justify-content:space-between;gap:20px;min-height:170px;padding:10px 8px 22px}',
+                  '.hero{display:flex;align-items:end;justify-content:space-between;gap:20px;min-height:170px;padding:10px 8px 22px;margin-right:500px}'
+              ),
+              (
+                  '.metrics{grid-template-columns:repeat(5,1fr);margin-bottom:13px}',
+                  '.metrics{grid-template-columns:repeat(5,1fr);margin-bottom:13px;margin-right:500px}'
+              ),
+              (
+                  '.map{height:300px;',
+                  '.map{height:285px;'
+              ),
+              (
+                  '.empty{height:300px;',
+                  '.empty{height:285px;'
+              ),
+              (
+                  '.moon-shadow{position:absolute;inset:-1px;border-radius:50%;background:#05060b;opacity:.94;',
+                  '.moon-shadow{display:none;position:absolute;inset:-1px;border-radius:50%;background:#05060b;opacity:0;'
+              ),
+          ]
+
+          responsive = '@media(max-width:1000px){.hero,.metrics{margin-right:0}}'
+
+          for path in files:
+              s = path.read_text()
+              original = s
+              for old, new in replacements:
+                  if old not in s:
+                      raise SystemExit(f'Expected fragment not found in {path}: {old}')
+                  s = s.replace(old, new, 1)
+              marker = '</style>'
+              if responsive not in s:
+                  if marker not in s:
+                      raise SystemExit(f'Style marker not found in {path}')
+                  s = s.replace(marker, responsive + marker, 1)
+              if s == original:
+                  raise SystemExit(f'No changes made to {path}')
+              path.write_text(s)
+          PY
+
+      - name: Commit layout
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/weather-command-center.js dist/weather-command-center.js
+          git commit -m 'fix: apply dashboard reference layout'
+          git push
+
+      - name: Remove temporary workflow
+        run: |
+          git rm .github/workflows/apply-dashboard-reference-layout.yml
+          git commit -m 'chore: remove temporary layout workflow'
+          git push
