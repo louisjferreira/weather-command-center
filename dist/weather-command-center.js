@@ -17,6 +17,7 @@ _ids(){return{temperature:this._entity(this.config.temperature_entity,['outdoor 
 _icon(c){return({sunny:'☀️','clear-night':'🌙',partlycloudy:'⛅',cloudy:'☁️',rainy:'🌧️',pouring:'🌧️',lightning:'⛈️','lightning-rainy':'⛈️',snowy:'🌨️',snow:'❄️',windy:'💨','windy-variant':'🌬️',fog:'🌫️',hail:'🌨️',exceptional:'⚠️'})[c]||'🌤️'}
 _label(c){return c?c.replace(/-/g,' ').replace(/\b\w/g,x=>x.toUpperCase()):'Unknown'}
 _bg(c){if(c?.includes('lightning'))return'storm';if(c?.includes('rain'))return'rain';if(c?.includes('snow'))return'snow';if(c==='cloudy'||c==='fog')return'cloud';if(c==='clear-night')return'night';if(c==='sunny'||c==='partlycloudy')return'sun';return'default'}
+_day(v){try{return new Intl.DateTimeFormat(undefined,{weekday:'short'}).format(new Date(v))}catch(e){return'—'}}
 _tempUnit(id,a){return String(this._unit(id,a?.temperature_unit||'°C')).replace(/^°/,'')}
 _background(c){const u=this.config.background_urls||{};return u[c]||u[this._bg(c)]||u.default||DEFAULT_BACKGROUNDS[c]||DEFAULT_BACKGROUNDS[this._bg(c)]||DEFAULT_BACKGROUNDS.default}
 _loc(){const lat=Number(this._hass?.config?.latitude),lon=Number(this._hass?.config?.longitude);return Number.isFinite(lat)&&Number.isFinite(lon)?{lat,lon}:null}
