@@ -22,7 +22,7 @@ jobs:
           sed -i 's#/hacsfiles/weather-command-center/backgrounds/#/local/community/weather-command-center/backgrounds/#g' dist/weather-command-center.js
           sed -i 's#,snow:"/local/community/weather-command-center/backgrounds/snow.jpg"##g' src/weather-command-center.js
           sed -i 's#,snow:"/local/community/weather-command-center/backgrounds/snow.jpg"##g' dist/weather-command-center.js
-          sed -i 's#loaded automatically by the card through the HACS path:#loaded automatically by the card through Home Assistant's local static-file path:#' README.md
+          sed -i "s#loaded automatically by the card through the HACS path:#loaded automatically by the card through Home Assistant's local static-file path:#" README.md
           sed -i 's#/hacsfiles/weather-command-center/backgrounds/<background>.jpg#/local/community/weather-command-center/backgrounds/<background>.jpg#' README.md
           sed -i 's#v0.2.1 — first versioned release#v0.2.2 — background asset path fix#' README.md
 
