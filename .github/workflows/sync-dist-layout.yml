@@ -1,0 +1,46 @@
+name: Sync layout to distribution
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: "!startsWith(github.event.head_commit.message, 'fix: sync compact wind layout to dist')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch distribution
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('dist/weather-command-center.js')
+          s = p.read_text()
+          changes = [
+            ('.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:13px;margin-bottom:13px;align-items:stretch}', '.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:13px;margin-bottom:13px;align-items:stretch}'),
+            ('.panel{min-height:280px;height:100%;box-sizing:border-box}', '.panel{min-height:360px;height:360px;box-sizing:border-box}'),
+            ('.map{height:260px;', '.map{height:300px;'),
+            ('.empty{height:260px;', '.empty{height:300px;'),
+            ('.windbox{height:180px;', '.windbox{height:145px;'),
+            ('.windbox svg{width:180px;height:180px;', '.windbox svg{width:145px;height:145px;'),
+            ('.wind-side strong{display:block;font-size:25px;', '.wind-side strong{display:block;font-size:22px;'),
+          ]
+          for old, new in changes:
+              if old not in s:
+                  raise SystemExit('Expected distribution fragment not found: ' + old)
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add dist/weather-command-center.js
+          git commit -m 'fix: sync compact wind layout to dist'
+          git push
+      - name: Remove workflow
+        run: |
+          git rm .github/workflows/sync-dist-layout.yml
+          git commit -m 'chore: remove dist sync workflow'
+          git push
