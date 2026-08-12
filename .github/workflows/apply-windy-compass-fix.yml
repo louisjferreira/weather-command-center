@@ -19,37 +19,33 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
 
           p = Path('src/weather-command-center.js')
           s = p.read_text(encoding='utf-8')
 
-          # Windy is now the default map provider.
           s = s.replace("this.map='radar';", "this.map='windy';", 1)
+          s = s.replace('<span class="sub">LIVE / SATELLITE / RADAR</span>', '<span class="sub">LIVE WIND / RADAR</span>', 1)
 
-          # Remove the broken map-provider buttons from the UI.
-          s = s.replace('<span class="sub">LIVE / SATELLITE / RADAR</span>', '<span class="sub">LIVE WIND / RADAR</span>')
           old_tabs = '<button class="tab active" data-map="radar">RADAR</button><button class="tab" data-map="windy">WINDY</button><button class="tab" data-map="wundermap">WUNDERMAP</button><button class="tab" data-map="sat24">SAT24</button>'
           new_tabs = '<button class="tab" data-map="radar">RADAR</button><button class="tab active" data-map="windy">WINDY</button>'
           if old_tabs not in s:
               raise SystemExit('Expected map tab markup not found')
           s = s.replace(old_tabs, new_tabs, 1)
 
-          # Radar controls should only be visible while Radar is selected.
           needle = "updateMap(){const root=this.root;if(!root)return;const el=root.querySelector('.maphost');if(!el)return;"
           repl = "updateMap(){const root=this.root;if(!root)return;const el=root.querySelector('.maphost');if(!el)return;const controls=root.querySelector('.controls');if(controls)controls.style.display=this.map==='radar'?'flex':'none';"
           if needle not in s:
               raise SystemExit('Expected updateMap header not found')
           s = s.replace(needle, repl, 1)
 
-          # Fix the wind arrow geometry. The previous polygon was rotated around
-          # the tip from an absolute coordinate set, which caused the arrowhead
-          # to be misaligned with the shaft for non-zero bearings.
-          old_rose = re.compile(r"const rose=root\.getElementById\('rose'\);if\(rose\)\{const d=deg==null\?0:deg,r=78,cx=102,cy=102,x=cx\+r\*Math\.sin\(d\*Math\.PI/180\),y=cy-r\*Math\.cos\(d\*Math\.PI/180\);rose\.innerHTML='.*?</svg>'\}\}", re.S)
-          new_rose = """const rose=root.getElementById('rose');if(rose){const d=deg==null?0:((deg%360)+360)%360,r=78,cx=102,cy=102,rad=d*Math.PI/180,x=cx+r*Math.sin(rad),y=cy-r*Math.cos(rad),vx=Math.sin(rad),vy=-Math.cos(rad),px=Math.cos(rad),py=Math.sin(rad),baseX=x-13*vx,baseY=y-13*vy,hx=7*px,hy=7*py;rose.innerHTML='<svg viewBox=\\"0 0 204 204\\" aria-label=\\"Wind direction\\"><circle class=\\"ring\\" cx=\\"102\\" cy=\\"102\\" r=\\"28\\"/><circle class=\\"ring\\" cx=\\"102\\" cy=\\"102\\" r=\\"52\\"/><circle class=\\"ring\\" cx=\\"102\\" cy=\\"102\\" r=\\"78\\"/><line class=\\"axis\\" x1=\\"24\\" y1=\\"102\\" x2=\\"180\\" y2=\\"102\\"/><line class=\\"axis\\" x1=\\"102\\" y1=\\"24\\" x2=\\"102\\" y2=\\"180\\"/><text x=\\"99\\" y=\\"14\\">N</text><text x=\\"190\\" y=\\"106\\">E</text><text x=\\"99\\" y=\\"198\\">S</text><text x=\\"8\\" y=\\"106\\">W</text><line class=\\"arrow\\" x1=\\"102\\" y1=\\"102\\" x2=\\"'+x+'\\" y2=\\"'+y+'\\"/><polygon class=\\"head\\" points=\\"'+x+','+y+' '+(baseX-hx)+','+(baseY-hy)+' '+(baseX+hx)+','+(baseY+hy)+'\\"/><circle class=\\"center\\" cx=\\"102\\" cy=\\"102\\" r=\\"5\\"/></svg>'}}"""
-          s, n = old_rose.subn(new_rose, s, count=1)
-          if n != 1:
-              raise SystemExit('Expected wind compass markup not found')
+          # Replace the entire compass rendering block between the rose marker and shell update.
+          start = s.find("const rose=root.getElementById('rose');if(rose){")
+          end = s.find("const shell=root.querySelector('.shell'),bg=this.bgUrl(cond);", start)
+          if start < 0 or end < 0:
+              raise SystemExit('Expected wind compass block not found')
+
+          rose = """const rose=root.getElementById('rose');if(rose){const d=deg==null?0:((deg%360)+360)%360,r=78,cx=102,cy=102,rad=d*Math.PI/180,x=cx+r*Math.sin(rad),y=cy-r*Math.cos(rad),vx=Math.sin(rad),vy=-Math.cos(rad),px=Math.cos(rad),py=Math.sin(rad),baseX=x-13*vx,baseY=y-13*vy,hx=7*px,hy=7*py;rose.innerHTML='<svg viewBox=\\"0 0 204 204\\" aria-label=\\"Wind direction\\"><circle class=\\"ring\\" cx=\\"102\\" cy=\\"102\\" r=\\"28\\"/><circle class=\\"ring\\" cx=\\"102\\" cy=\\"102\\" r=\\"52\\"/><circle class=\\"ring\\" cx=\\"102\\" cy=\\"102\\" r=\\"78\\"/><line class=\\"axis\\" x1=\\"24\\" y1=\\"102\\" x2=\\"180\\" y2=\\"102\\"/><line class=\\"axis\\" x1=\\"102\\" y1=\\"24\\" x2=\\"102\\" y2=\\"180\\"/><text x=\\"99\\" y=\\"14\\">N</text><text x=\\"190\\" y=\\"106\\">E</text><text x=\\"99\\" y=\\"198\\">S</text><text x=\\"8\\" y=\\"106\\">W</text><line class=\\"arrow\\" x1=\\"102\\" y1=\\"102\\" x2=\\"'+x+'\\" y2=\\"'+y+'\\"/><polygon class=\\"head\\" points=\\"'+x+','+y+' '+(baseX-hx)+','+(baseY-hy)+' '+(baseX+hx)+','+(baseY+hy)+'\\"/><circle class=\\"center\\" cx=\\"102\\" cy=\\"102\\" r=\\"5\\"/></svg>'}}"""
+          s = s[:start] + rose + s[end:]
 
           p.write_text(s, encoding='utf-8')
           PY
@@ -57,7 +53,7 @@ jobs:
       - name: Commit source changes
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+users.noreply.github.com"
           git add src/weather-command-center.js
           git diff --cached --quiet && exit 0
           git commit -m "Apply Windy and compass UI fix"
