@@ -4,9 +4,15 @@ A full-screen, responsive weather command center card for Home Assistant.
 
 [![HACS](https://img.shields.io/badge/HACS-Dashboard-41BDF5.svg)](https://www.hacs.xyz/)
 
+## Preview
+
+The current design target is the Weather Command Center layout shown below, including the photographic weather background, lunar panel, Windy map, wind compass, local weather-station data, and 7-day forecast.
+
+![Weather Command Center preview](docs/weather-command-center-preview.png)
+
 ## Status
 
-**Early development — v0.2.0**
+**v0.2.1 — first versioned release**
 
 The project is being developed as a standalone Lovelace custom card with HACS distribution in mind.
 
@@ -22,6 +28,7 @@ The project is being developed as a standalone Lovelace custom card with HACS di
 - Home Assistant weather forecast API integration
 - Up to 7 daily forecast tiles
 - Dynamic weather-themed backgrounds
+- Bundled photographic weather backgrounds for HACS installs
 - Optional photographic background URLs
 - Mobile/tablet responsive layout
 - Configurable Home Assistant entity mapping
@@ -38,7 +45,7 @@ The project is being developed as a standalone Lovelace custom card with HACS di
 - Weather Underground data integration through a safe Home Assistant-side mechanism
 - Animated weather backgrounds
 - Visual configuration editor
-- Versioned HACS releases and default-store submission
+- HACS default-store submission
 
 ## Installation
 
@@ -50,8 +57,6 @@ The project is being developed as a standalone Lovelace custom card with HACS di
 4. Add `louisjferreira/weather-command-center`.
 5. Select **Dashboard** as the repository type.
 6. Install **Weather Command Center**.
-
-The normal HACS discovery/listing process is a separate step and will be pursued once the card reaches a suitable public release.
 
 ### Manual
 
@@ -114,7 +119,13 @@ can be used to disable the panel if desired.
 
 ## Dynamic backgrounds
 
-Optional background images can be supplied without changing the card source:
+The release includes bundled weather backgrounds under `backgrounds/`. They are loaded automatically by the card through the HACS path:
+
+```text
+/hacsfiles/weather-command-center/backgrounds/<background>.jpg
+```
+
+Optional background images can also be supplied without changing the card source:
 
 ```yaml
 background_urls:
@@ -134,6 +145,8 @@ The card falls back to built-in gradients when no image is supplied.
 src/     Source implementation
 dist/    HACS/browser distribution
 scripts/ Build helpers
+backgrounds/ Bundled photographic backgrounds
+docs/    Project documentation and preview assets
 ```
 
 The GitHub Actions build workflow regenerates `dist/weather-command-center.js` whenever the source changes.
