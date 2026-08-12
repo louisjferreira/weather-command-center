@@ -12,7 +12,7 @@ The current design target is the Weather Command Center layout shown below, incl
 
 ## Status
 
-**v0.2.2 — background asset path fix**
+**v0.2.3 — bundled background loader fix**
 
 The project is being developed as a standalone Lovelace custom card with HACS distribution in mind.
 
@@ -119,10 +119,10 @@ can be used to disable the panel if desired.
 
 ## Dynamic backgrounds
 
-The release includes bundled weather backgrounds under `backgrounds/`. They are loaded automatically by the card through Home Assistant's local static-file path:
+The release includes bundled weather backgrounds under `backgrounds/`. They are loaded automatically from the Weather Command Center GitHub release:
 
 ```text
-/local/community/weather-command-center/backgrounds/<background>.jpg
+https://cdn.jsdelivr.net/gh/louisjferreira/weather-command-center@v0.2.3/backgrounds/<background>.jpg
 ```
 
 Optional background images can also be supplied without changing the card source:
