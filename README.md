@@ -6,64 +6,43 @@ A full-screen, responsive weather command center card for Home Assistant.
 
 ## Status
 
-**Early development — v0.1.0**
+**Early development — v0.2.0**
 
-The repository is public and structured as a Home Assistant HACS Dashboard element. The current milestone includes Home Assistant weather data, daily forecasts, a live wind display, and native RainViewer radar.
+The project is being developed as a standalone Lovelace custom card with HACS distribution in mind.
 
 ## Current features
 
 - Responsive weather command-center layout
-- Current weather condition and temperature
-- Feels-like temperature
-- Humidity, pressure, wind, direction and UV values
-- Home Assistant `weather.get_forecasts` integration
+- Current conditions and feels-like temperature
+- Configurable local weather-station observations
+- Wind compass / directional visualization
+- Regional radar integration with RainViewer where coverage exists
+- Graceful radar fallback where coverage is unavailable
+- Radar timeline controls and zoom
+- Home Assistant weather forecast API integration
 - Up to 7 daily forecast tiles
-- Native RainViewer radar
-- Automatic radar centering from Home Assistant latitude/longitude
-- Radar history playback controls
-- Radar zoom controls
-- RainViewer attribution
 - Dynamic weather-themed backgrounds
-- Optional configurable photographic background URLs
+- Optional photographic background URLs
 - Mobile/tablet responsive layout
 - Configurable Home Assistant entity mapping
-- Home Assistant card-picker suggestion for weather entities
-- HACS-compatible `dist/` distribution
-
-## Radar
-
-The card can use RainViewer directly; no additional Home Assistant radar integration is required.
-
-```yaml
-radar: true
-radar_zoom: 6
-```
-
-The radar uses the public RainViewer Weather Maps API. The current public API provides past radar frames at roughly 10-minute intervals for the previous two hours. The card caches the radar metadata for ten minutes and does not request future nowcast frames. RainViewer's current free API requires visible attribution, which is included in the radar panel.
-
-Radar availability depends on RainViewer's coverage and source-radar availability for the configured Home Assistant location.
+- Optional Weather Underground station identifier for display/identity
+- HACS-compatible distribution
 
 ## Roadmap
 
-The larger command center will add:
-
-- Proper map/base-map rendering around the radar overlay
-- Richer radar timeline and animation
-- Ecowitt/Wittboy weather-station profile
-- Wind rose using historical wind observations
-- Hourly forecast
-- Temperature and precipitation graphs
-- Rainfall history and statistics
-- Rich weather-condition backgrounds/animations
-- More detailed observation panels
-- Better visual configuration/editor support
-- Release builds and versioned HACS releases
+- Full satellite/weather-map provider abstraction
+- Rich Wind Rose with historical distribution
+- Hourly forecast and trend graphs
+- Rain and temperature graphs
+- Better automatic weather-station discovery
+- Weather Underground data integration through a safe Home Assistant-side mechanism
+- Animated weather backgrounds
+- Visual configuration editor
+- Versioned HACS releases and default-store submission
 
 ## Installation
 
 ### HACS — Custom Repository
-
-The repository can be installed immediately through HACS as a custom Dashboard repository:
 
 1. Open **HACS**.
 2. Open **Dashboard**.
@@ -78,52 +57,76 @@ The normal HACS discovery/listing process is a separate step and will be pursued
 
 Copy `dist/weather-command-center.js` into the Home Assistant `www` directory and register it as a Lovelace JavaScript module resource.
 
-## Configuration
-
-Minimal configuration:
+## Basic configuration
 
 ```yaml
 type: custom:weather-command-center
 weather_entity: weather.forecast_home
 name: Home Weather
+location: Marondera
 ```
 
-For a weather station, dedicated entities can be mapped while the weather entity supplies condition/forecast data:
+## Wittboy / Ecowitt configuration
+
+The card does not require a Wittboy. Any Home Assistant sensor entities can be mapped into the local observation panel.
+
+For a Wittboy installation, use the `wittboy:` mapping so the configuration remains readable:
 
 ```yaml
 type: custom:weather-command-center
-weather_entity: weather.micro_weather_station
+weather_entity: weather.forecast_home
 name: Home Weather
 location: Marondera
 
-temperature_entity: sensor.ecowitt_outdoor_temp_80bf
-humidity_entity: sensor.ecowitt_outdoor_humidity_80bf
-pressure_entity: sensor.ecowitt_pressure_relative
-wind_speed_entity: sensor.ecowitt_wind_speed_80bf
-wind_direction_entity: sensor.ecowitt_wind_direction_80bf
-uv_entity: sensor.ecowitt_uv_index_80bf
+wittboy:
+  temperature: sensor.ecowitt_outdoor_temp_80bf
+  humidity: sensor.ecowitt_outdoor_humidity_80bf
+  pressure: sensor.ecowitt_pressure_relative
+  wind_speed: sensor.ecowitt_wind_speed_80bf
+  wind_direction: sensor.ecowitt_wind_direction_80bf
+  wind_gust: sensor.ecowitt_wind_gust_80bf
+  uv: sensor.ecowitt_uv_index_80bf
+  dew_point: sensor.ecowitt_dewpoint_80bf
+  rain_rate: sensor.ecowitt_rain_rate_80bf
+  rain_24h: sensor.ecowitt_0x7c_80bf
+  solar: sensor.ecowitt_solar_radiation_80bf
 
-radar: true
-radar_zoom: 6
-forecast_days: 7
+station_name: Wittboy
+weather_underground:
+  station_id: IMASHO29
 ```
 
-The card uses attributes from the configured `weather_entity` where dedicated sensor entities are not supplied.
+The entity IDs above are an example based on one Ecowitt installation. Other users can substitute their own entities.
 
-Optional photographic backgrounds:
+The card will use attributes from `weather_entity` for the main current conditions when dedicated entities are not supplied.
+
+## Radar
+
+Radar is enabled by default and uses RainViewer's public weather-map endpoint where regional radar coverage exists. The card automatically uses the Home Assistant latitude and longitude to centre the map.
+
+Ground-radar coverage is not available everywhere. In locations such as Zimbabwe where RainViewer does not provide useful radar coverage, the card intentionally displays a clear fallback rather than showing misleading empty radar imagery.
+
+```yaml
+radar: false
+```
+
+can be used to disable the panel if desired.
+
+## Dynamic backgrounds
+
+Optional background images can be supplied without changing the card source:
 
 ```yaml
 background_urls:
   sunny: /local/weather/sunny.jpg
   partlycloudy: /local/weather/partly-cloudy.jpg
   cloudy: /local/weather/cloudy.jpg
-  rainy: /local/weather/rainy.jpg
+  rainy: /local/weather/rain.jpg
   storm: /local/weather/storm.jpg
-  snow: /local/weather/snow.jpg
   clear-night: /local/weather/night.jpg
 ```
 
-Set `radar: false` to disable the radar panel.
+The card falls back to built-in gradients when no image is supplied.
 
 ## Development
 
@@ -133,15 +136,7 @@ dist/    HACS/browser distribution
 scripts/ Build helpers
 ```
 
-The project is intentionally dependency-light so the card can run directly in the Home Assistant frontend without requiring a separate JavaScript runtime or frontend framework.
-
-## Data sources
-
-Weather and forecast data come from Home Assistant entities configured by the user. Radar imagery is supplied by RainViewer's public Weather Maps API. See the RainViewer API documentation for current coverage, terms and API limitations.
-
-## Home Assistant compatibility
-
-The card uses Home Assistant's frontend `hass` object and the `weather.get_forecasts` action with response data rather than relying on deprecated forecast state attributes.
+The GitHub Actions build workflow regenerates `dist/weather-command-center.js` whenever the source changes.
 
 ## License
 
