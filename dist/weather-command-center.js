@@ -1,207 +1,35 @@
-const WCC_STYLES = `<style>
-:host{display:block;width:100%;color:#fff}
-ha-card{overflow:hidden;border:0;background:transparent;box-shadow:none}
-.shell{min-height:720px;box-sizing:border-box;padding:24px;border-radius:28px;position:relative;overflow:hidden;background:linear-gradient(145deg,#16283d,#315b7d);font-family:Roboto,sans-serif}
-.shell.has-bg{background-size:cover;background-position:center}
-.shell.has-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,20,35,.20),rgba(8,20,35,.70));pointer-events:none}
-.topbar,.hero,.metrics,.content-grid,.station,section,.footer{position:relative;z-index:1}
-.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
-.eyebrow,.section-title{font-size:10px;letter-spacing:.18em;opacity:.72;font-weight:700}
-.title{font-size:27px;font-weight:700;margin-top:4px}
-.condition-pill,.map-tab{border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.13);border-radius:999px;backdrop-filter:blur(12px);color:#fff}
-.condition-pill{padding:8px 13px;white-space:nowrap}
-.hero{display:flex;align-items:end;justify-content:space-between;gap:20px;min-height:170px;padding:10px 8px 22px}
-.hero-main{display:flex;align-items:center;gap:22px}
-.hero-icon{font-size:78px;line-height:1}
-.temperature{font-size:88px;line-height:.95;font-weight:300;letter-spacing:-.06em}
-.temperature span{font-size:34px;vertical-align:top;margin-left:5px;opacity:.75}
-.feels{margin-top:8px;opacity:.72;font-size:14px}
-.location{align-self:end;opacity:.72;font-size:13px}
-.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:13px}
-.metric,.panel,.station{padding:14px 16px;border-radius:17px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(12px)}
-.metric span,.station-item span,.wind-stat span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;opacity:.62;margin-bottom:6px}
-.metric strong,.station-item strong,.wind-stat strong{font-size:17px;font-weight:600}
-.content-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:13px;margin-bottom:13px}
-.panel{min-height:280px;box-sizing:border-box}
-.panel-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
-.panel-title strong{font-size:11px;letter-spacing:.13em}
-.panel-subtitle{font-size:10px;opacity:.55}
-.map-tabs{display:flex;gap:5px;overflow:auto;margin-bottom:8px}
-.map-tab{border-radius:8px;padding:5px 9px;font-size:9px;cursor:pointer;white-space:nowrap}
-.map-tab.active{background:rgba(255,255,255,.2)}
-.map-frame{height:225px;border-radius:13px;overflow:hidden;position:relative;background:#263747}
-.map-frame img,.map-frame iframe{width:100%;height:100%;display:block;border:0}
-.map-frame iframe{background:#263747}
-.map-empty{height:225px;border-radius:13px;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;box-sizing:border-box;color:rgba(255,255,255,.68);font-size:12px}
-.map-empty strong{display:block;color:#fff;margin-bottom:5px}
-.map-controls{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
-.map-buttons{display:flex;gap:5px}
-.map-btn{border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.16);color:#fff;border-radius:8px;width:30px;height:27px;cursor:pointer}
-.map-link{color:rgba(255,255,255,.75);font-size:10px;text-decoration:none}
-.wind-panel{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}
-.wind-wrap{height:195px;display:flex;align-items:center;justify-content:center}
-.wind-svg{width:205px;height:205px;max-width:100%}
-.wind-svg text{fill:rgba(255,255,255,.72);font:700 10px Roboto,sans-serif}
-.wind-svg .ring{fill:none;stroke:rgba(255,255,255,.16);stroke-width:1}
-.wind-svg .axis{stroke:rgba(255,255,255,.12);stroke-width:1}
-.wind-svg .arrow{stroke:#fff;stroke-width:4;stroke-linecap:round}
-.wind-svg .arrowhead{fill:#fff}
-.wind-svg .center{fill:rgba(255,255,255,.16);stroke:rgba(255,255,255,.35);stroke-width:1}
-.wind-readout{text-align:center;font-size:12px;opacity:.8;margin-top:-12px}
-.wind-stats{display:grid;gap:8px}
-.wind-stat{padding:11px;border-radius:13px;background:rgba(0,0,0,.1);border:1px solid rgba(255,255,255,.07)}
-.wind-stat strong{font-size:15px}
-.station{margin-bottom:13px;padding:15px 16px}
-.station-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
-.station-head strong{font-size:11px;letter-spacing:.13em}
-.station-head span{font-size:10px;opacity:.5}
-.station-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
-.station-item{padding:11px;border-radius:13px;background:rgba(0,0,0,.1);border:1px solid rgba(255,255,255,.07)}
-.station-item strong{font-size:15px}
-.days-title{margin:0 0 10px 3px}
-.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
-.day{text-align:center;padding:12px 7px;min-height:128px;border-radius:16px;background:rgba(0,0,0,.13);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(10px)}
-.day-name{font-size:11px;font-weight:700;opacity:.75}
-.day-icon{font-size:30px;margin:10px 0}
-.day-temp{font-size:14px}
-.day-temp span{opacity:.55;margin-left:4px}
-.day-rain{margin-top:8px;font-size:10px;opacity:.62}
-.footer{margin-top:14px;text-align:right;font-size:10px;opacity:.48}
-.empty{padding:30px;opacity:.6}
-@media(max-width:1000px){.content-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.station-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:700px){.shell{padding:17px;border-radius:20px;min-height:0}.hero{min-height:155px;align-items:flex-start;flex-direction:column}.hero-icon{font-size:58px}.temperature{font-size:62px}.metrics,.station-grid{grid-template-columns:repeat(2,1fr)}.wind-panel{grid-template-columns:1fr}.days{grid-template-columns:repeat(2,1fr)}}
+const STYLE=`<style>
+:host{display:block;width:100%;color:#fff}ha-card{border:0;background:transparent;box-shadow:none;overflow:hidden}.shell{min-height:720px;padding:24px;border-radius:28px;box-sizing:border-box;position:relative;overflow:hidden;background:linear-gradient(145deg,#16283d,#315b7d);font-family:Roboto,sans-serif}.shell.bg{background-size:cover;background-position:center}.shell.bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,20,35,.18),rgba(8,20,35,.72));pointer-events:none}.z{position:relative;z-index:1}.top{display:flex;justify-content:space-between;align-items:flex-start}.eyebrow,.section-title{font-size:10px;letter-spacing:.18em;opacity:.72;font-weight:700}.title{font-size:27px;font-weight:700;margin-top:4px}.pill,.tab,.mapbtn{border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.13);color:#fff}.pill{padding:8px 13px;border-radius:999px;white-space:nowrap}.hero{display:flex;align-items:end;justify-content:space-between;gap:20px;min-height:170px;padding:10px 8px 22px}.hero-main{display:flex;align-items:center;gap:22px}.icon{font-size:78px;line-height:1}.temp{font-size:88px;line-height:.95;font-weight:300;letter-spacing:-.06em}.temp small{font-size:34px;vertical-align:top;margin-left:5px;opacity:.75}.feels{margin-top:8px;opacity:.72;font-size:14px}.loc{align-self:end;opacity:.72;font-size:13px}.metrics,.station-grid,.days{display:grid;gap:9px}.metrics{grid-template-columns:repeat(5,1fr);margin-bottom:13px}.metric,.panel,.station{padding:14px 16px;border-radius:17px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(12px)}.metric span,.station-item span,.wstat span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;opacity:.62;margin-bottom:6px}.metric strong,.station-item strong,.wstat strong{font-size:17px;font-weight:600}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:13px;margin-bottom:13px}.panel{min-height:280px}.ptitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.ptitle strong{font-size:11px;letter-spacing:.13em}.sub{font-size:10px;opacity:.55}.tabs{display:flex;gap:5px;overflow:auto;margin-bottom:8px}.tab{border-radius:8px;padding:5px 9px;font-size:9px;cursor:pointer;white-space:nowrap}.tab.active{background:rgba(255,255,255,.2)}.map{height:225px;border-radius:13px;overflow:hidden;background:#263747;position:relative}.map img{width:100%;height:100%;display:block;object-fit:cover}.empty{height:225px;border-radius:13px;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;box-sizing:border-box;color:rgba(255,255,255,.68);font-size:12px}.empty strong{display:block;color:#fff;margin-bottom:6px}.controls{display:flex;align-items:center;gap:5px;margin-top:8px}.mapbtn{border-radius:8px;width:30px;height:27px;cursor:pointer}.link{margin-left:auto;color:rgba(255,255,255,.75);font-size:10px;text-decoration:none}.wind{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}.windbox{height:195px;display:flex;align-items:center;justify-content:center}.windbox svg{width:205px;height:205px}.windbox text{fill:rgba(255,255,255,.72);font:700 10px Roboto,sans-serif}.ring{fill:none;stroke:rgba(255,255,255,.16)}.axis{stroke:rgba(255,255,255,.12)}.arrow{stroke:#fff;stroke-width:4;stroke-linecap:round}.head{fill:#fff}.center{fill:rgba(255,255,255,.16);stroke:rgba(255,255,255,.35)}.read{text-align:center;font-size:12px;opacity:.8;margin-top:-12px}.wstats{display:grid;gap:8px}.wstat,.station-item{padding:11px;border-radius:13px;background:rgba(0,0,0,.1);border:1px solid rgba(255,255,255,.07)}.station{margin-bottom:13px;padding:15px 16px}.station-head{display:flex;justify-content:space-between;margin-bottom:11px}.station-head strong{font-size:11px;letter-spacing:.13em}.station-head span{font-size:10px;opacity:.5}.station-grid{grid-template-columns:repeat(5,1fr)}.station-item strong{font-size:15px}.days-title{margin:0 0 10px 3px}.days{grid-template-columns:repeat(7,1fr)}.day{text-align:center;padding:12px 7px;min-height:128px;border-radius:16px;background:rgba(0,0,0,.13);border:1px solid rgba(255,255,255,.09)}.dayname{font-size:11px;font-weight:700;opacity:.75}.dayicon{font-size:30px;margin:10px 0}.daytemp{font-size:14px}.daytemp i{opacity:.55;margin-left:4px;font-style:normal}.rain{margin-top:8px;font-size:10px;opacity:.62}.foot{text-align:right;font-size:10px;opacity:.48;margin-top:14px}@media(max-width:1000px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.station-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.shell{padding:17px}.hero{min-height:155px;align-items:flex-start;flex-direction:column}.icon{font-size:58px}.temp{font-size:62px}.metrics,.station-grid{grid-template-columns:repeat(2,1fr)}.wind{grid-template-columns:1fr}.days{grid-template-columns:repeat(2,1fr)}}
 </style>`;
-
-const RAINVIEWER_API = 'https://api.rainviewer.com/public/weather-maps.json';
-const SAT24_URL = 'https://www.sat24.com/en-gb/country/zw';
-const DEFAULT_BACKGROUNDS = {
-  sunny:'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=2000&q=80',
-  partlycloudy:'https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=2000&q=80',
-  cloudy:'https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=2000&q=80',
-  rainy:'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=2000&q=80',
-  storm:'https://images.unsplash.com/photo-1499346030926-9a72daac6c63?auto=format&fit=crop&w=2000&q=80',
-  snow:'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?auto=format&fit=crop&w=2000&q=80',
-  night:'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2000&q=80',
-  default:'https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=2000&q=80'
-};
-
-class WeatherCommandCenter extends HTMLElement {
-  static getStubConfig(){return {type:'custom:weather-command-center',weather_entity:'weather.home',name:'Home Weather'}}
-
-  setConfig(c){
-    if(!c||typeof c!=='object') throw new Error('Invalid configuration');
-    const w=c.wittboy||{},m=c.weather_map||{};
-    this.config={
-      weather_entity:c.weather_entity||c.entity||'weather.home',
-      name:c.name||'Weather',
-      temperature_entity:c.temperature_entity||w.temperature,
-      humidity_entity:c.humidity_entity||w.humidity,
-      pressure_entity:c.pressure_entity||w.pressure,
-      wind_speed_entity:c.wind_speed_entity||w.wind_speed,
-      wind_direction_entity:c.wind_direction_entity||w.wind_direction,
-      wind_gust_entity:c.wind_gust_entity||w.wind_gust,
-      uv_entity:c.uv_entity||w.uv,
-      dew_point_entity:c.dew_point_entity||w.dew_point,
-      feels_like_entity:c.feels_like_entity||w.feels_like,
-      rain_rate_entity:c.rain_rate_entity||w.rain_rate,
-      rain_24h_entity:c.rain_24h_entity||w.rain_24h,
-      solar_entity:c.solar_entity||w.solar,
-      location:c.location||'',
-      station_name:c.station_name||'Local Weather Station',
-      wu_station_id:c.weather_underground?.station_id||c.wu_station_id||'',
-      forecast_days:Math.min(7,Math.max(1,Number(c.forecast_days||7))),
-      background_urls:c.background_urls||{},
-      auto_discover:w.auto_discover!==false,
-      map_provider:m.provider||c.map_provider||'windy',
-      windy_zoom:Number(m.windy_zoom||c.windy_zoom||7),
-      sat24_url:m.sat24_url||c.sat24_url||SAT24_URL,
-      wundermap_url:m.wundermap_url||c.wundermap_url||''
-    };
-    this._forecast=[];this._busy=false;this._discover={};this._mapProvider=this.config.map_provider;
-    this._radarMeta=null;this._radarIndex=-1;this._radarZoom=6;this._radarBusy=false;this._radarError='';
-    this.render();
-  }
-
-  set hass(h){this._hass=h;this.render()}
-  getCardSize(){return 10}
-  _state(id){return id&&this._hass?this._hass.states[id]:undefined}
-  _value(id,f='—'){const s=this._state(id);return s&&!['unknown','unavailable'].includes(s.state)?s.state:f}
-  _unit(id,f=''){return this._state(id)?.attributes?.unit_of_measurement||f}
-  _num(id){const n=Number(this._value(id,NaN));return Number.isFinite(n)?n:null}
-
-  _entity(explicit,patterns){
-    if(explicit)return explicit;
-    if(!this.config.auto_discover||!this._hass?.states)return;
-    const key=patterns.join('|'),cached=this._discover[key];
-    if(cached){const s=this._state(cached);if(s&&!['unknown','unavailable'].includes(s.state))return cached}
-    let best,bestScore=-Infinity;
-    for(const [id,s] of Object.entries(this._hass.states)){
-      const idText=id.toLowerCase(),nameText=String(s.attributes?.friendly_name||'').toLowerCase(),text=`${idText} ${nameText}`;
-      if(!/(ecowitt|witboy|wh90|ws90)/i.test(text))continue;
-      let score=0;
-      patterns.forEach((p,index)=>{const q=p.toLowerCase();if(nameText===q)score+=1000-index*10;else if(nameText.includes(q))score+=100-index*5;if(idText.includes(q.replace(/\s+/g,'_')))score+=60-index*3;if(idText.includes(q))score+=30-index*2});
-      if(!['unknown','unavailable'].includes(s.state))score+=20;
-      if(score>bestScore){bestScore=score;best=id}
-    }
-    if(best)this._discover[key]=best;
-    return best;
-  }
-
-  _ids(){return{
-    temperature:this._entity(this.config.temperature_entity,['outdoor temperature','outdoor temp','temperature_80bf']),
-    humidity:this._entity(this.config.humidity_entity,['outdoor humidity','humidity_80bf']),
-    pressure:this._entity(this.config.pressure_entity,['relative pressure','pressure relative','pressure_relative']),
-    windSpeed:this._entity(this.config.wind_speed_entity,['wind speed','wind_speed','0x0b_80bf']),
-    windDirection:this._entity(this.config.wind_direction_entity,['wind direction','wind_direction','0x0a_80bf']),
-    windGust:this._entity(this.config.wind_gust_entity,['wind gust','wind_gust','gust','0x0c_80bf']),
-    uv:this._entity(this.config.uv_entity,['uv index','uv_index','uv_index_80bf']),
-    dew:this._entity(this.config.dew_point_entity,['dewpoint temperature','dew point','dewpoint','dewpoint_80bf']),
-    feels:this._entity(this.config.feels_like_entity,['feels like temperature','feels like','feels_like_temp']),
-    rainRate:this._entity(this.config.rain_rate_entity,['rain rate','rain_rate','0x0e_80bf']),
-    rain24:this._entity(this.config.rain_24h_entity,['24-hour rain','24 hour rain','24h rain','0x7c_80bf']),
-    solar:this._entity(this.config.solar_entity,['solar radiation','solar_radiation','solar_lux'])
-  }}
-
-  _icon(c){return({sunny:'☀️','clear-night':'🌙',partlycloudy:'⛅',cloudy:'☁️',rainy:'🌧️',pouring:'🌧️',lightning:'⛈️','lightning-rainy':'⛈️',snowy:'🌨️',snow:'❄️',windy:'💨','windy-variant':'🌬️',fog:'🌫️',hail:'🌨️',exceptional:'⚠️'})[c]||'🌤️'}
-  _label(c){return c?c.replace(/-/g,' ').replace(/\b\w/g,x=>x.toUpperCase()):'Unknown'}
-  _bg(c){if(c?.includes('lightning'))return'storm';if(c?.includes('rain'))return'rain';if(c?.includes('snow'))return'snow';if(c==='cloudy'||c==='fog')return'cloud';if(c==='clear-night')return'night';if(c==='sunny'||c==='partlycloudy')return'sun';return'default'}
-  _day(v){try{return new Intl.DateTimeFormat(undefined,{weekday:'short'}).format(new Date(v))}catch(e){return'—'}}
-  _tempUnit(id,a){return String(this._unit(id,a?.temperature_unit||'°C')).replace(/^°/,'')}
-  _background(c){const u=this.config.background_urls||{};return u[c]||u[this._bg(c)]||u.default||DEFAULT_BACKGROUNDS[c]||DEFAULT_BACKGROUNDS[this._bg(c)]||DEFAULT_BACKGROUNDS.default}
-  _loc(){const lat=Number(this._hass?.config?.latitude),lon=Number(this._hass?.config?.longitude);return Number.isFinite(lat)&&Number.isFinite(lon)?{lat,lon}:null}
-
-  async _loadForecast(){if(!this._hass?.callWS||this._busy)return;this._busy=true;try{const r=await this._hass.callWS({type:'call_service',domain:'weather',service:'get_forecasts',service_data:{type:'daily'},target:{entity_id:this.config.weather_entity},return_response:true});this._forecast=r?.response?.[this.config.weather_entity]?.forecast||r?.[this.config.weather_entity]?.forecast||[]}catch(e){console.warn('WCC forecast',e)}finally{this._busy=false;this.render()}}
-  async _radar(){if(this._radarMeta||this._radarBusy)return;this._radarBusy=true;try{const r=await fetch(RAINVIEWER_API,{cache:'no-store'});if(!r.ok)throw Error(r.status);const d=await r.json(),past=d?.radar?.past||[];this._radarMeta=past.length?{host:d.host,frames:past}:null;if(past.length)this._radarIndex=past.length-1;else this._radarError='No RainViewer radar frames were returned'}catch(e){this._radarError='RainViewer radar is not available for this location'}finally{this._radarBusy=false;this.render()}}
-  _radarUrl(){const l=this._loc(),m=this._radarMeta;if(!l||!m?.frames?.length||this._radarIndex<0)return'';const f=m.frames[this._radarIndex];return`${m.host}${f.path}/512/${this._radarZoom}/${l.lat.toFixed(4)}/${l.lon.toFixed(4)}/2/1_0.png`}
-
-  _windyUrl(){const l=this._loc(),lat=l?l.lat.toFixed(4):'-18.1850',lon=l?l.lon.toFixed(4):'31.5519',z=Math.min(11,Math.max(3,this.config.windy_zoom));return`https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=900&height=420&zoom=${z}&level=surface&overlay=radar&product=radar&menu=true&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1&play=1`}
-  _wunderUrl(){const l=this._loc();if(this.config.wundermap_url)return this.config.wundermap_url;if(!l)return'https://www.wunderground.com/wundermap/';return`https://www.wunderground.com/wundermap/?lat=${l.lat}&lon=${l.lon}&wxsn=1&zoom=8`}
-  _mapCandidates(){return[['windy','WINDY'],['radar','RADAR'],['wundermap','WUNDERMAP'],['satellite','SAT24']]}
-
-  _mapHtml(){
-    const p=this._mapProvider,tabs=this._mapCandidates().map(([k,n])=>`<button class="map-tab ${p===k?'active':''}" data-map="${k}">${n}</button>`).join('');
-    let body='',credit='',link='';
-    if(p==='windy'){body=`<div class="map-frame"><iframe src="${this._windyUrl()}" title="Windy weather map" frameborder="0" scrolling="no" allowfullscreen></iframe></div>`;credit='Windy';link=`<a class="map-link" href="${this._windyUrl()}" target="_blank" rel="noopener">Open Windy ↗</a>`}
-    else if(p==='radar'){const u=this._radarUrl();body=u?`<div class="map-frame"><img src="${u}" alt="Rain radar"></div>`:`<div class="map-empty"><div><strong>Radar unavailable here</strong>${this._radarError||'Checking radar coverage…'}<br><small>Use Windy for the regional weather map.</small></div></div>`;credit='RainViewer';link=`<a class="map-link" href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer ↗</a>`}
-    else if(p==='wundermap'){body=`<div class="map-frame"><iframe src="${this._wunderUrl()}" title="WunderMap" frameborder="0" scrolling="no" allowfullscreen></iframe></div>`;credit='Weather Underground';link=`<a class="map-link" href="${this._wunderUrl()}" target="_blank" rel="noopener">Open WunderMap ↗</a>`}
-    else{body=`<div class="map-empty"><div><strong>SAT24</strong>Satellite coverage is available on the external SAT24 site, but its page does not reliably allow embedded dashboards.<br><small>Use Windy for the in-card view.</small></div></div>`;credit='SAT24';link=`<a class="map-link" href="${this.config.sat24_url}" target="_blank" rel="noopener">Open SAT24 ↗</a>`}
-    return`<div class="map-tabs">${tabs}</div>${body}<div class="map-controls"><div class="map-buttons">${p==='radar'?'<button class="map-btn" data-map-action="prev">◀</button><button class="map-btn" data-map-action="next">▶</button><button class="map-btn" data-map-action="zoomout">−</button><button class="map-btn" data-map-action="zoomin">+</button>':''}</div><span class="panel-subtitle">${credit}</span>${link}</div>`
-  }
-
-  _wind(dir,speed,gust,pressure){
-    const b=Number.isFinite(dir)?dir:0,n=Number(speed),u=this._unit(this._ids().windSpeed,'km/h'),len=66,a=b*Math.PI/180,x=100+Math.sin(a)*len,y=100-Math.cos(a)*len,bx=x-Math.sin(a-Math.PI/6)*14,by=y+Math.cos(a-Math.PI/6)*14,cx=x-Math.sin(a+Math.PI/6)*14,cy=y+Math.cos(a+Math.PI/6)*14;
-    return`<div class="wind-panel"><div><div class="wind-wrap"><svg class="wind-svg" viewBox="0 0 200 200"><circle class="ring" cx="100" cy="100" r="68"/><circle class="ring" cx="100" cy="100" r="48"/><circle class="ring" cx="100" cy="100" r="29"/><line class="axis" x1="100" y1="22" x2="100" y2="178"/><line class="axis" x1="22" y1="100" x2="178" y2="100"/><text x="100" y="14" text-anchor="middle">N</text><text x="100" y="193" text-anchor="middle">S</text><text x="10" y="104" text-anchor="middle">W</text><text x="190" y="104" text-anchor="middle">E</text><line class="arrow" x1="100" y1="100" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/><polygon class="arrowhead" points="${x.toFixed(1)},${y.toFixed(1)} ${bx.toFixed(1)},${by.toFixed(1)} ${cx.toFixed(1)},${cy.toFixed(1)}"/><circle class="center" cx="100" cy="100" r="6"/></svg></div><div class="wind-readout">${Number.isFinite(n)?`${b.toFixed(0)}° · ${n.toFixed(1)} ${u}`:'No wind data'}</div></div><div class="wind-stats"><div class="wind-stat"><span>Gust</span><strong>${gust===null?'—':gust.toFixed(1)} ${this._unit(this._ids().windGust,'km/h')}</strong></div><div class="wind-stat"><span>Pressure</span><strong>${pressure===null?'—':pressure.toFixed(1)} ${this._unit(this._ids().pressure,'hPa')}</strong></div><div class="wind-stat"><span>Direction</span><strong>${Number.isFinite(dir)?this._cardinal(dir):'—'}</strong></div></div></div>`
-  }
-  _cardinal(d){const dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return dirs[Math.round((d%360)/22.5)%16]}
-  _format(id,dec=1,f='—'){const n=this._num(id);return n===null?f:n.toFixed(dec)}
-
-  _render(){
-    if(!this._hass){this.innerHTML='';return}
-    const ids=this._ids(),ws=this._state(this.config.weather_entity),a=ws?.attributes||{},condition=ws?.state||'cloudy',temp=this._num(ids.temperature)??(Number.isFinite(Number(a.temperature))?Number(a.temperature):null),humidity=this._num(ids.humidity)??(Number.isFinite(Number(a.humidity))?Number(a.humidity):null),pressure=this._num(ids.pressure)??(Number.isFinite(Number(a.pressure))?Number(a.pressure):null),wind=this._num(ids.windSpeed)??(Number.isFinite(Number(a.wind_speed))?Number(a.wind_speed):null),dir=this._num(ids.windDirection)??(Number.isFinite(Number(a.wind_bearing))?Number(a.wind_bearing):null),gust=this._num(ids.windGust)??(Number.isFinite(Number(a.wind_gust_speed))?Number(a.wind_gust_speed):null),uv=this._num(ids.uv)??(Number.isFinite(Number(a.uv_index))?Number(a.uv_index):null),feels=this._num(ids.feels)??(Number.isFinite(Number(a.apparent_temperature))?Number(a.apparent_temperature):temp),unit=this._tempUnit(ids.temperature,a),bg=this._background(condition);
-    this.innerHTML=`${WCC_STYLES}<ha-card><div class="shell has-bg ${this._bg(condition)}" style="background-image:url('${String(bg).replace(/'/g,"\\'")}')"><div class="topbar"><div><div class="eyebrow">WEATHER COMMAND CENTER</div><div class="title">${this.config.name}</div></div><div class="condition-pill">${this._icon(condition)} ${this._label(condition)}</div></div><div class="hero"><div class="hero-main"><div class="hero-icon">${this._icon(condition)}</div><div><div class="temperature">${temp===null?'—':temp.toFixed(1)}<span>°${unit}</span></div><div class="feels">Feels like ${feels===null?'—':feels.toFixed(1)}°${unit}</div></div></div><div class="location">${this.config.location||a.location_name||'Home'}</div></div><div class="metrics"><div class="metric"><span>Humidity</span><strong>${humidity===null?'—':humidity.toFixed(0)}%</strong></div><div class="metric"><span>Pressure</span><strong>${pressure===null?'—':pressure.toFixed(1)} ${this._unit(ids.pressure,'hPa')}</strong></div><div class="metric"><span>Wind</span><strong>${wind===null?'—':wind.toFixed(1)} ${this._unit(ids.windSpeed,'km/h')}</strong></div><div class="metric"><span>Direction</span><strong>${dir===null?'—':dir.toFixed(0)}°</strong></div><div class="metric"><span>UV Index</span><strong>${uv===null?'—':uv.toFixed(0)}</strong></div></div><div class="content-grid"><div class="panel"><div class="panel-title"><strong>WEATHER MAP</strong><span class="panel-subtitle">LIVE / SATELLITE / RADAR</span></div>${this._mapHtml()}</div><div class="panel"><div class="panel-title"><strong>WIND & ATMOSPHERE</strong><span class="panel-subtitle">LIVE OBSERVATION</span></div>${this._wind(dir,wind,gust,pressure)}</div></div><div class="station"><div class="station-head"><strong>LOCAL WEATHER STATION</strong><span>${this.config.station_name}${this.config.wu_station_id?` · ${this.config.wu_station_id}`:''}</span></div><div class="station-grid"><div class="station-item"><span>Dew Point</span><strong>${this._format(ids.dew,1)} ${this._unit(ids.dew,'°C')}</strong></div><div class="station-item"><span>Rain Rate</span><strong>${this._format(ids.rainRate,1)} ${this._unit(ids.rainRate,'mm/h')}</strong></div><div class="station-item"><span>24h Rain</span><strong>${this._format(ids.rain24,1)} ${this._unit(ids.rain24,'mm')}</strong></div><div class="station-item"><span>Wind Gust</span><strong>${this._format(ids.windGust,1)} ${this._unit(ids.windGust,'km/h')}</strong></div><div class="station-item"><span>Solar</span><strong>${this._format(ids.solar,1)} ${this._unit(ids.solar,'W/m²')}</strong></div></div></div><section><div class="section-title days-title">${this._forecast.length||0} DAY FORECAST</div><div class="days">${this._forecast.length?this._forecast.slice(0,this.config.forecast_days).map(f=>`<div class="day"><div class="day-name">${this._day(f.datetime)}</div><div class="day-icon">${this._icon(f.condition)}</div><div class="day-temp">${f.temperature??'—'}° <span>${f.templow??'—'}°</span></div><div class="day-rain">${f.precipitation_probability==null?'—':`${f.precipitation_probability}% rain`}</div></div>`).join(''):'<div class="empty">Forecast unavailable</div>'}</div></section><div class="footer">Updated ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div></div></ha-card>`;this._wire()
-  }
-
-  _wire(){this.querySelectorAll('[data-map]').forEach(b=>b.onclick=()=>{this._mapProvider=b.dataset.map;this.render()});this.querySelectorAll('[data-map-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.mapAction,m=this._radarMeta?.frames?.length||0;if(a==='prev'&&m)this._radarIndex=Math.max(0,this._radarIndex-1);if(a==='next'&&m)this._radarIndex=Math.min(m-1,this._radarIndex+1);if(a==='zoomout')this._radarZoom=Math.max(2,this._radarZoom-1);if(a==='zoomin')this._radarZoom=Math.min(7,this._radarZoom+1);this.render()})}
-  render(){clearTimeout(this._timer);this._timer=setTimeout(()=>this._render(),0);if(this._hass&&!this._forecast.length&&!this._busy)this._loadForecast();if(this._hass&&!this._radarMeta&&!this._radarBusy)this._radar()}
+const RV='https://api.rainviewer.com/public/weather-maps.json';
+const BG={sunny:'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=2000&q=80',partlycloudy:'https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=2000&q=80',cloudy:'https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=2000&q=80',rainy:'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=2000&q=80',storm:'https://images.unsplash.com/photo-1499346030926-9a72daac6c63?auto=format&fit=crop&w=2000&q=80',night:'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2000&q=80',snow:'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?auto=format&fit=crop&w=2000&q=80'};
+class WeatherCommandCenter extends HTMLElement{
+ static getStubConfig(){return{type:'custom:weather-command-center',weather_entity:'weather.home',name:'Home Weather'}}
+ setConfig(c){if(!c||typeof c!=='object')throw Error('Invalid configuration');const w=c.wittboy||{},m=c.weather_map||{};this.c={weather_entity:c.weather_entity||c.entity||'weather.home',name:c.name||'Weather',temperature_entity:c.temperature_entity||w.temperature,humidity_entity:c.humidity_entity||w.humidity,pressure_entity:c.pressure_entity||w.pressure,wind_speed_entity:c.wind_speed_entity||w.wind_speed,wind_direction_entity:c.wind_direction_entity||w.wind_direction,wind_gust_entity:c.wind_gust_entity||w.wind_gust,uv_entity:c.uv_entity||w.uv,dew_point_entity:c.dew_point_entity||w.dew_point,feels_like_entity:c.feels_like_entity||w.feels_like,rain_rate_entity:c.rain_rate_entity||w.rain_rate,rain_24h_entity:c.rain_24h_entity||w.rain_24h,solar_entity:c.solar_entity||w.solar,location:c.location||'',station_name:c.station_name||'Local Weather Station',forecast_days:Math.min(7,Math.max(1,Number(c.forecast_days||7))),background_urls:c.background_urls||{},auto_discover:w.auto_discover!==false,windy_zoom:Number(m.windy_zoom||c.windy_zoom||7),sat24_url:m.sat24_url||c.sat24_url||'https://www.sat24.com/en-gb/country/zw',wundermap_url:m.wundermap_url||c.wundermap_url||''};this.map='radar';this.h=null;this.f=[];this.dis={};this.radar=null;this.radarIndex=-1;this.radarZoom=6;this.rendered=false;this.forecastBusy=false;this.radarBusy=false}
+ set hass(h){this.h=h;if(!this.rendered){this.render();this.rendered=true;this.loadForecast();this.loadRadar()}else this.update()}
+ getCardSize(){return 10}
+ s(id){return id&&this.h?.states?.[id]}
+ v(id,d='—'){const s=this.s(id);return s&&!['unknown','unavailable'].includes(s.state)?s.state:d}
+ n(id){const n=Number(this.v(id,NaN));return Number.isFinite(n)?n:null}
+ unit(id,d=''){return this.s(id)?.attributes?.unit_of_measurement||d}
+ e(exp,ps){if(exp)return exp;if(!this.c.auto_discover||!this.h?.states)return;const k=ps.join('|');if(this.dis[k]&&this.s(this.dis[k]))return this.dis[k];let best='',score=-1e9;for(const[id,s]of Object.entries(this.h.states)){const t=(id+' '+String(s.attributes?.friendly_name||'')).toLowerCase();if(!/(ecowitt|wittboy|wh90|ws90)/.test(t))continue;let z=0;ps.forEach((p,i)=>{const q=p.toLowerCase();if(t.includes(q))z+=100-i});if(!['unknown','unavailable'].includes(s.state))z+=10;if(z>score){score=z;best=id}}if(best)this.dis[k]=best;return best}
+ ids(){return{t:this.e(this.c.temperature_entity,['outdoor temperature','outdoor temp','temperature_80bf']),hum:this.e(this.c.humidity_entity,['outdoor humidity','humidity_80bf']),p:this.e(this.c.pressure_entity,['relative pressure','pressure relative','pressure_relative']),ws:this.e(this.c.wind_speed_entity,['wind speed','wind_speed','0x0b_80bf']),wd:this.e(this.c.wind_direction_entity,['wind direction','wind_direction','0x0a_80bf']),wg:this.e(this.c.wind_gust_entity,['wind gust','wind_gust','gust','0x0c_80bf']),uv:this.e(this.c.uv_entity,['uv index','uv_index']),dew:this.e(this.c.dew_point_entity,['dew point','dewpoint']),feel:this.e(this.c.feels_like_entity,['feels like','feels_like']),rr:this.e(this.c.rain_rate_entity,['rain rate','rain_rate']),r24:this.e(this.c.rain_24h_entity,['24 hour rain','24h rain']),solar:this.e(this.c.solar_entity,['solar radiation','solar_radiation'])}}
+ icon(c){return({sunny:'☀️','clear-night':'🌙',partlycloudy:'⛅',cloudy:'☁️',rainy:'🌧️',pouring:'🌧️',lightning:'⛈️','lightning-rainy':'⛈️',snowy:'🌨️',windy:'💨','windy-variant':'🌬️',fog:'🌫️'})[c]||'🌤️'}
+ label(c){return(c||'unknown').replace(/-/g,' ').replace(/\b\w/g,x=>x.toUpperCase())}
+ bg(c){if(c?.includes('lightning'))return'storm';if(c?.includes('rain'))return'rainy';if(c?.includes('snow'))return'snow';if(c==='clear-night')return'night';if(c==='sunny')return'sunny';if(c==='partlycloudy')return'partlycloudy';return'cloudy'}
+ temp(v,u){if(v==null||v==='—')return'—';let x=String(u||'°C');x=x.replace(/^°/,'');return `${v}°${x}`}
+ coords(){const a=Number(this.h?.config?.latitude),o=Number(this.h?.config?.longitude);return Number.isFinite(a)&&Number.isFinite(o)?{lat:a,lon:o}:{lat:-18.185,lon:31.5519}}
+ bgUrl(c){const k=this.bg(c);return this.c.background_urls?.[k]||this.c.background_urls?.[c]||BG[k]||BG.cloudy}
+ async loadForecast(){if(this.forecastBusy||!this.h?.callWS)return;this.forecastBusy=true;try{const r=await this.h.callWS({type:'call_service',domain:'weather',service:'get_forecasts',service_data:{type:'daily'},target:{entity_id:this.c.weather_entity},return_response:true});this.f=r?.response?.[this.c.weather_entity]?.forecast||r?.[this.c.weather_entity]?.forecast||[];this.updateForecast()}catch(e){}this.forecastBusy=false}
+ async loadRadar(){if(this.radarBusy)return;this.radarBusy=true;try{const r=await fetch(RV,{cache:'no-store'}),d=await r.json(),p=d?.radar?.past||[];this.radar=p.length?{host:d.host,frames:p}:null;if(p.length)this.radarIndex=p.length-1;this.updateMap()}catch(e){this.radar=null}this.radarBusy=false}
+ radarUrl(){if(!this.radar||this.radarIndex<0)return'';const q=this.coords(),f=this.radar.frames[this.radarIndex];return `${this.radar.host}${f.path}/512/${this.radarZoom}/${q.lat.toFixed(4)}/${q.lon.toFixed(4)}/2/1_0.png`}
+ windy(){const q=this.coords();return `https://www.windy.com/?${q.lat.toFixed(4)},${q.lon.toFixed(4)},${Math.min(11,Math.max(3,this.c.windy_zoom))}`}
+ wunder(){const q=this.coords();return this.c.wundermap_url||`https://www.wunderground.com/wundermap/?lat=${q.lat}&lon=${q.lon}&wxsn=1&zoom=8`}
+ setMap(p){this.map=p;this.updateMap()}
+ updateMap(){const el=this.shadowRoot?.querySelector('.maphost');if(!el)return;const links={windy:this.windy(),wundermap:this.wunder(),sat24:this.c.sat24_url};let html='';if(this.map==='radar'){const u=this.radarUrl();html=u?`<div class="map"><img src="${u}" alt="Rain radar"></div>`:`<div class="empty"><div><strong>Radar unavailable</strong>RainViewer has not returned radar coverage for this location.</div></div>`}else{const n={windy:'Windy',wundermap:'WunderMap',sat24:'SAT24'}[this.map];html=`<div class="empty"><div><strong>${n}</strong>Live interactive map is available externally.<br><small>This avoids iframe reload loops inside Home Assistant.</small></div></div>`}el.innerHTML=html;this.shadowRoot.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.map===this.map));const a=this.shadowRoot.querySelector('.maplink');if(a){a.href=this.map==='radar'?'https://www.rainviewer.com/':links[this.map]||'#';a.textContent=this.map==='radar'?'RainViewer':'Open '+({windy:'Windy',wundermap:'WunderMap',sat24:'SAT24'}[this.map]||'map')}}
+ render(){const st=this.h?.states?.[this.c.weather_entity],a=st?.attributes||{},i=this.ids(),cond=st?.state||'partlycloudy',u=this.unit(i.t,a.temperature_unit||'°C'),shell=this.bgUrl(cond);this.shadowRoot.innerHTML=`${STYLE}<ha-card><div class="shell bg" style="background-image:url('${shell}')"><div class="z top"><div><div class="eyebrow">WEATHER COMMAND CENTER</div><div class="title">${this.c.name}</div></div><div class="pill" id="condition">${this.icon(cond)} ${this.label(cond)}</div></div><div class="z hero"><div class="hero-main"><div class="icon" id="heroicon">${this.icon(cond)}</div><div><div class="temp"><span id="temp">—</span><small>°${u.replace(/^°/,'')}</small></div><div class="feels" id="feels">Feels like —</div></div></div><div class="loc">${this.c.location||this.h?.config?.location_name||'Home'}</div></div><div class="z metrics"><div class="metric"><span>Humidity</span><strong id="hum">—</strong></div><div class="metric"><span>Pressure</span><strong id="press">—</strong></div><div class="metric"><span>Wind</span><strong id="wind">—</strong></div><div class="metric"><span>Direction</span><strong id="dir">—</strong></div><div class="metric"><span>UV Index</span><strong id="uv">—</strong></div></div><div class="z grid"><section class="panel"><div class="ptitle"><strong>WEATHER MAP</strong><span class="sub">LIVE / SATELLITE / RADAR</span></div><div class="tabs"><button class="tab active" data-map="radar">RADAR</button><button class="tab" data-map="windy">WINDY</button><button class="tab" data-map="wundermap">WUNDERMAP</button><button class="tab" data-map="sat24">SAT24</button></div><div class="maphost"></div><div class="controls"><button class="mapbtn" data-act="prev">‹</button><button class="mapbtn" data-act="next">›</button><button class="mapbtn" data-act="zoomout">−</button><button class="mapbtn" data-act="zoomin">+</button><a class="link maplink" target="_blank" rel="noopener">RainViewer</a></div></section><section class="panel"><div class="ptitle"><strong>WIND & ATMOSPHERE</strong><span class="sub">LIVE OBSERVATION</span></div><div class="wind"><div><div class="windbox" id="rose"></div><div class="read" id="windread">—</div></div><div class="wstats"><div class="wstat"><span>Gust</span><strong id="gust">—</strong></div><div class="wstat"><span>Pressure</span><strong id="wpress">—</strong></div><div class="wstat"><span>Direction</span><strong id="wdir">—</strong></div></div></div></section></div><section class="z station"><div class="station-head"><strong>LOCAL WEATHER STATION</strong><span>${this.c.station_name}</span></div><div class="station-grid"><div class="station-item"><span>Dew Point</span><strong id="dew">—</strong></div><div class="station-item"><span>Rain Rate</span><strong id="rr">—</strong></div><div class="station-item"><span>24H Rain</span><strong id="r24">—</strong></div><div class="station-item"><span>Wind Gust</span><strong id="sgust">—</strong></div><div class="station-item"><span>Solar</span><strong id="solar">—</strong></div></div></section><section class="z"><div class="section-title days-title">${this.c.forecast_days}-DAY FORECAST</div><div class="days" id="days"></div></section><div class="z foot">Weather data from Home Assistant / configured station</div></div></ha-card>`;this.shadowRoot.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>this.setMap(b.dataset.map)));this.shadowRoot.querySelectorAll('.mapbtn').forEach(b=>b.addEventListener('click',()=>{const a=b.dataset.act;if(a==='prev'&&this.radarIndex>0)this.radarIndex--;if(a==='next'&&this.radar?.frames&&this.radarIndex<this.radar.frames.length-1)this.radarIndex++;if(a==='zoomout')this.radarZoom=Math.max(3,this.radarZoom-1);if(a==='zoomin')this.radarZoom=Math.min(10,this.radarZoom+1);this.updateMap()}));this.updateMap();this.update();this.updateForecast()}
+ update(){if(!this.h||!this.shadowRoot)return;const s=this.h.states?.[this.c.weather_entity],a=s?.attributes||{},i=this.ids(),cond=s?.state||'partlycloudy',u=this.unit(i.t,a.temperature_unit||'°C');const set=(id,x)=>{const e=this.shadowRoot.getElementById(id);if(e)e.textContent=x};set('heroicon',this.icon(cond));set('condition',`${this.icon(cond)} ${this.label(cond)}`);set('temp',this.v(i.t));set('feels',`Feels like ${this.temp(this.v(i.feel),this.unit(i.feel,u))}`);set('hum',`${this.v(i.hum)}%`);set('press',`${this.v(i.p)} ${this.unit(i.p,'hPa')}`);set('wind',`${this.v(i.ws)} ${this.unit(i.ws,'km/h')}`);const deg=this.n(i.wd);const compass=deg==null?'—':['N','NE','E','SE','S','SW','W','NW'][Math.round(deg/45)%8];set('dir',`${deg==null?'—':Math.round(deg)}°`);set('uv',this.v(i.uv,'0'));set('gust',`${this.v(i.wg)} ${this.unit(i.wg,'km/h')}`);set('wpress',`${this.v(i.p)} ${this.unit(i.p,'hPa')}`);set('wdir',compass);set('windread',`${deg==null?'—':Math.round(deg)}° · ${this.v(i.ws)} ${this.unit(i.ws,'km/h')}`);set('dew',this.temp(this.v(i.dew),this.unit(i.dew,u)));set('rr',`${this.v(i.rr)} ${this.unit(i.rr,'mm/h')}`);set('r24',`${this.v(i.r24)} ${this.unit(i.r24,'mm')}`);set('sgust',`${this.v(i.wg)} ${this.unit(i.wg,'km/h')}`);set('solar',`${this.v(i.solar)} ${this.unit(i.solar,'W/m²')}`);const rose=this.shadowRoot.getElementById('rose');if(rose){const d=deg==null?0:deg,r=78,cx=102,cy=102,x=cx+r*Math.sin(d*Math.PI/180),y=cy-r*Math.cos(d*Math.PI/180);rose.innerHTML=`<svg viewBox="0 0 204 204" aria-label="Wind direction"><circle class="ring" cx="102" cy="102" r="28"/><circle class="ring" cx="102" cy="102" r="52"/><circle class="ring" cx="102" cy="102" r="78"/><line class="axis" x1="24" y1="102" x2="180" y2="102"/><line class="axis" x1="102" y1="24" x2="102" y2="180"/><text x="99" y="14">N</text><text x="190" y="106">E</text><text x="99" y="198">S</text><text x="8" y="106">W</text><line class="arrow" x1="102" y1="102" x2="${x}" y2="${y}"/><polygon class="head" points="${x},${y} ${x-7},${y+14} ${x+7},${y+14}" transform="rotate(${d} ${x} ${y})"/><circle class="center" cx="102" cy="102" r="5"/></svg>`}}
+ const shell=this.shadowRoot.querySelector('.shell');const bg=this.bgUrl(cond);if(shell&&shell.dataset.bg!==bg){shell.style.backgroundImage=`url('${bg}')`;shell.dataset.bg=bg}}
+ updateForecast(){const el=this.shadowRoot?.getElementById('days');if(!el)return;el.innerHTML=this.f.slice(0,this.c.forecast_days).map(x=>{const d=x.datetime||x.date,max=x.temperature??x.temperature_high??'—',min=x.templow??x.temperature_low??'—';return `<div class="day"><div class="dayname">${d?new Intl.DateTimeFormat(undefined,{weekday:'short'}).format(new Date(d)):'—'}</div><div class="dayicon">${this.icon(x.condition)}</div><div class="daytemp">${max}° <i>${min}°</i></div><div class="rain">${x.precipitation_probability??0}% rain</div></div>`}).join('')}
 }
 if(!customElements.get('weather-command-center'))customElements.define('weather-command-center',WeatherCommandCenter);
