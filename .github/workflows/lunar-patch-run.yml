@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, 'Fix moon panel and wind direction display') }}
+    if: ${{ !contains(github.event.head_commit.message, 'Apply weather-command-center patch') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,16 +24,8 @@ jobs:
           p=Path('src/weather-command-center.js')
           s=p.read_text()
 
-          # Strong foreground lunar panel styling.
           s=re.sub(r'\.moon-panel\{[^}]*\}', '.moon-panel{position:absolute;top:76px;right:24px;width:410px;min-height:138px;padding:14px 16px;border-radius:18px;background:rgba(7,18,30,.48);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(16px);box-sizing:border-box;z-index:20!important;display:block!important;box-shadow:0 10px 30px rgba(0,0,0,.16)}', s, count=1)
-          # Override responsive rule so the desktop hero panel stays in the header.
-          s=s.replace('@media(max-width:1000px){.moon-panel{position:relative;top:auto;right:auto;width:auto;margin:0 8px 13px}.hero{min-height:155px}}','@media(max-width:1000px){.moon-panel{position:absolute;top:76px;right:17px;width:min(410px,42%);margin:0}.hero{min-height:155px}}')
-
-          # Readable compass value.
           s=re.sub(r'\.read\{[^}]*\}', '.read{text-align:center;font-size:13px;font-weight:600;letter-spacing:.02em;opacity:1;margin-top:-9px;position:relative;z-index:10;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);background:rgba(4,12,22,.55);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:6px 10px;display:inline-block;left:50%;transform:translateX(-50%);white-space:nowrap}', s, count=1)
-
-          # Reverse the graphical vector: meteorological direction is FROM, while the
-          # current graphic points TO the bearing. 142 degrees therefore points FROM SE.
           s=s.replace('.arrow{stroke:#fff;stroke-width:4;stroke-linecap:round}', '.arrow{stroke:#fff;stroke-width:4;stroke-linecap:round;transform:rotate(180deg);transform-box:fill-box;transform-origin:center}')
 
           moon=r'''updateMoonPanel(){if(!this.root)return;const put=()=>{const shell=this.root.querySelector('.shell');if(!shell)return false;let el=shell.querySelector('.moon-panel');if(!el){el=document.createElement('div');el.className='moon-panel z';shell.appendChild(el)}const m=this.moonInfo();el.innerHTML=`<div class="moon-head"><div class="moon-title">MOON & ATMOSPHERE</div><div class="sub">LIVE ASTRONOMICAL DATA</div></div><div class="moon-phase"><div class="moon-icon">${m.icon}</div><div><div class="moon-name">${m.name}</div><div class="moon-sub">${m.percent}% illuminated · Moon age ${m.age.toFixed(1)} days</div></div></div><div class="moon-stats"><div class="moon-stat"><span>Illumination</span><strong>${m.percent}%</strong></div><div class="moon-stat"><span>Age</span><strong>${m.age.toFixed(1)} days</strong></div><div class="moon-stat"><span>Next ${m.next}</span><strong>~${m.daysToNext}</strong></div></div>`;return true};if(!put())requestAnimationFrame(put);setTimeout(put,150)}
@@ -58,5 +50,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/weather-command-center.js dist/weather-command-center.js
-          git commit -m "Fix moon panel and wind direction display"
+          git commit -m "Apply weather-command-center patch"
           git push
