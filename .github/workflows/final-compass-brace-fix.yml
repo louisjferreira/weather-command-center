@@ -1,0 +1,43 @@
+name: Final Compass Brace Fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: ${{ !contains(github.event.head_commit.message, 'Fix wind compass closing brace') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix source
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/weather-command-center.js')
+          s=p.read_text(encoding='utf-8')
+          old="</svg>'}}const shell=root.querySelector('.shell'),bg=this.bgUrl(cond);"
+          new="</svg>'}const shell=root.querySelector('.shell'),bg=this.bgUrl(cond);"
+          if old not in s:
+              raise SystemExit('Expected compass closing sequence not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Validate and commit
+        run: |
+          node --check src/weather-command-center.js
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/weather-command-center.js
+          git commit -m "Fix wind compass closing brace"
+          git push
+      - name: Remove workflow
+        if: success()
+        run: |
+          git rm .github/workflows/final-compass-brace-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Remove temporary final compass workflow"
+          git push
