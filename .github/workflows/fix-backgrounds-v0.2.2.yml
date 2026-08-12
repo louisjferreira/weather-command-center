@@ -1,0 +1,45 @@
+name: Fix background assets and release v0.2.2
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-release:
+    if: contains(github.event.head_commit.message, '[release-v0.2.2]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fix background asset paths
+        run: |
+          sed -i 's#/hacsfiles/weather-command-center/backgrounds/#/local/community/weather-command-center/backgrounds/#g' src/weather-command-center.js
+          sed -i 's#/hacsfiles/weather-command-center/backgrounds/#/local/community/weather-command-center/backgrounds/#g' dist/weather-command-center.js
+          sed -i 's#,snow:"/local/community/weather-command-center/backgrounds/snow.jpg"##g' src/weather-command-center.js
+          sed -i 's#,snow:"/local/community/weather-command-center/backgrounds/snow.jpg"##g' dist/weather-command-center.js
+          sed -i 's#loaded automatically by the card through the HACS path:#loaded automatically by the card through Home Assistant's local static-file path:#' README.md
+          sed -i 's#/hacsfiles/weather-command-center/backgrounds/<background>.jpg#/local/community/weather-command-center/backgrounds/<background>.jpg#' README.md
+          sed -i 's#v0.2.1 — first versioned release#v0.2.2 — background asset path fix#' README.md
+
+      - name: Commit fixed assets
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/weather-command-center.js dist/weather-command-center.js README.md
+          git diff --cached --quiet || git commit -m 'Fix HACS background asset paths'
+          git push
+
+      - name: Create v0.2.2 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.2.2 \
+            --repo "${{ github.repository }}" \
+            --target "$(git rev-parse HEAD)" \
+            --title "Weather Command Center v0.2.2" \
+            --generate-notes
