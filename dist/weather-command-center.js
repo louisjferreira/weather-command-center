@@ -5,7 +5,6 @@ ha-card{overflow:hidden;border:0;background:transparent;box-shadow:none}
 .shell.has-bg{background-size:cover;background-position:center}
 .shell.has-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,20,35,.20),rgba(8,20,35,.70));pointer-events:none}
 .topbar,.hero,.metrics,.content-grid,.station,section,.footer{position:relative;z-index:1}
-.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
 .eyebrow,.section-title{font-size:10px;letter-spacing:.18em;opacity:.72;font-weight:700}
 .title{font-size:27px;font-weight:700;margin-top:4px}
 .condition-pill,.map-tab{border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.13);border-radius:999px;backdrop-filter:blur(12px);color:#fff}
@@ -30,14 +29,13 @@ ha-card{overflow:hidden;border:0;background:transparent;box-shadow:none}
 .map-tab{border-radius:8px;padding:5px 9px;font-size:9px;cursor:pointer;white-space:nowrap}
 .map-tab.active{background:rgba(255,255,255,.2)}
 .map-frame{height:225px;border-radius:13px;overflow:hidden;position:relative;background:#263747}
-.map-frame img,.map-frame iframe{width:100%;height:100%;display:block;border:0}
-.map-frame iframe{background:#263747}
+.map-frame img{width:100%;height:100%;display:block;border:0}
 .map-empty{height:225px;border-radius:13px;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;box-sizing:border-box;color:rgba(255,255,255,.68);font-size:12px}
 .map-empty strong{display:block;color:#fff;margin-bottom:5px}
-.map-controls{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.map-controls{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
 .map-buttons{display:flex;gap:5px}
 .map-btn{border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.16);color:#fff;border-radius:8px;width:30px;height:27px;cursor:pointer}
-.map-link{color:rgba(255,255,255,.75);font-size:10px;text-decoration:none}
+.map-link{color:rgba(255,255,255,.75);font-size:10px;text-decoration:none;margin-left:auto}
 .wind-panel{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}
 .wind-wrap{height:195px;display:flex;align-items:center;justify-content:center}
 .wind-svg{width:205px;height:205px;max-width:100%}
@@ -137,9 +135,12 @@ class WeatherCommandCenter extends HTMLElement {
     let best,bestScore=-Infinity;
     for(const [id,s] of Object.entries(this._hass.states)){
       const idText=id.toLowerCase(),nameText=String(s.attributes?.friendly_name||'').toLowerCase(),text=`${idText} ${nameText}`;
-      if(!/(ecowitt|witboy|wh90|ws90)/i.test(text))continue;
+      const isWeatherSource=/(ecowitt|wittboy|wh90|ws90|weather station|weather sensor|outdoor)/i.test(text);
+      if(!isWeatherSource)continue;
       let score=0;
       patterns.forEach((p,index)=>{const q=p.toLowerCase();if(nameText===q)score+=1000-index*10;else if(nameText.includes(q))score+=100-index*5;if(idText.includes(q.replace(/\s+/g,'_')))score+=60-index*3;if(idText.includes(q))score+=30-index*2});
+      const stateType=s.attributes?.device_class||'';
+      if(['wind_speed','wind_direction','pressure','humidity','temperature','precipitation','illuminance'].includes(stateType))score+=25;
       if(!['unknown','unavailable'].includes(s.state))score+=20;
       if(score>bestScore){bestScore=score;best=id}
     }
@@ -173,18 +174,17 @@ class WeatherCommandCenter extends HTMLElement {
   async _loadForecast(){if(!this._hass?.callWS||this._busy)return;this._busy=true;try{const r=await this._hass.callWS({type:'call_service',domain:'weather',service:'get_forecasts',service_data:{type:'daily'},target:{entity_id:this.config.weather_entity},return_response:true});this._forecast=r?.response?.[this.config.weather_entity]?.forecast||r?.[this.config.weather_entity]?.forecast||[]}catch(e){console.warn('WCC forecast',e)}finally{this._busy=false;this.render()}}
   async _radar(){if(this._radarMeta||this._radarBusy)return;this._radarBusy=true;try{const r=await fetch(RAINVIEWER_API,{cache:'no-store'});if(!r.ok)throw Error(r.status);const d=await r.json(),past=d?.radar?.past||[];this._radarMeta=past.length?{host:d.host,frames:past}:null;if(past.length)this._radarIndex=past.length-1;else this._radarError='No RainViewer radar frames were returned'}catch(e){this._radarError='RainViewer radar is not available for this location'}finally{this._radarBusy=false;this.render()}}
   _radarUrl(){const l=this._loc(),m=this._radarMeta;if(!l||!m?.frames?.length||this._radarIndex<0)return'';const f=m.frames[this._radarIndex];return`${m.host}${f.path}/512/${this._radarZoom}/${l.lat.toFixed(4)}/${l.lon.toFixed(4)}/2/1_0.png`}
-
-  _windyUrl(){const l=this._loc(),lat=l?l.lat.toFixed(4):'-18.1850',lon=l?l.lon.toFixed(4):'31.5519',z=Math.min(11,Math.max(3,this.config.windy_zoom));return`https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=900&height=420&zoom=${z}&level=surface&overlay=radar&product=radar&menu=true&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1&play=1`}
+  _windyUrl(){const l=this._loc(),lat=l?l.lat.toFixed(4):'-18.1850',lon=l?l.lon.toFixed(4):'31.5519',z=Math.min(11,Math.max(3,this.config.windy_zoom));return`https://www.windy.com/?${lat},${lon},${z}`}
   _wunderUrl(){const l=this._loc();if(this.config.wundermap_url)return this.config.wundermap_url;if(!l)return'https://www.wunderground.com/wundermap/';return`https://www.wunderground.com/wundermap/?lat=${l.lat}&lon=${l.lon}&wxsn=1&zoom=8`}
-  _mapCandidates(){return[['windy','WINDY'],['radar','RADAR'],['wundermap','WUNDERMAP'],['satellite','SAT24']]}
+  _mapCandidates(){return[['radar','RADAR'],['windy','WINDY'],['wundermap','WUNDERMAP'],['satellite','SAT24']]}
 
   _mapHtml(){
     const p=this._mapProvider,tabs=this._mapCandidates().map(([k,n])=>`<button class="map-tab ${p===k?'active':''}" data-map="${k}">${n}</button>`).join('');
     let body='',credit='',link='';
-    if(p==='windy'){body=`<div class="map-frame"><iframe src="${this._windyUrl()}" title="Windy weather map" frameborder="0" scrolling="no" allowfullscreen></iframe></div>`;credit='Windy';link=`<a class="map-link" href="${this._windyUrl()}" target="_blank" rel="noopener">Open Windy ↗</a>`}
-    else if(p==='radar'){const u=this._radarUrl();body=u?`<div class="map-frame"><img src="${u}" alt="Rain radar"></div>`:`<div class="map-empty"><div><strong>Radar unavailable here</strong>${this._radarError||'Checking radar coverage…'}<br><small>Use Windy for the regional weather map.</small></div></div>`;credit='RainViewer';link=`<a class="map-link" href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer ↗</a>`}
-    else if(p==='wundermap'){body=`<div class="map-frame"><iframe src="${this._wunderUrl()}" title="WunderMap" frameborder="0" scrolling="no" allowfullscreen></iframe></div>`;credit='Weather Underground';link=`<a class="map-link" href="${this._wunderUrl()}" target="_blank" rel="noopener">Open WunderMap ↗</a>`}
-    else{body=`<div class="map-empty"><div><strong>SAT24</strong>Satellite coverage is available on the external SAT24 site, but its page does not reliably allow embedded dashboards.<br><small>Use Windy for the in-card view.</small></div></div>`;credit='SAT24';link=`<a class="map-link" href="${this.config.sat24_url}" target="_blank" rel="noopener">Open SAT24 ↗</a>`}
+    if(p==='radar'){const u=this._radarUrl();body=u?`<div class="map-frame"><img src="${u}" alt="Rain radar"></div>`:`<div class="map-empty"><div><strong>Radar unavailable here</strong>${this._radarError||'Checking radar coverage…'}<br><small>Use Windy for the regional weather map.</small></div></div>`;credit='RainViewer';link=`<a class="map-link" href="https://www.rainviewer.com/" target="_blank" rel="noopener">Open RainViewer ↗</a>`}
+    else if(p==='windy'){body=`<div class="map-empty"><div><strong>Windy map</strong>Windy does not currently provide a reliable embedded map for this card.<br><small>Open the live Windy map in a new tab.</small></div></div>`;credit='Windy';link=`<a class="map-link" href="${this._windyUrl()}" target="_blank" rel="noopener">Open Windy ↗</a>`}
+    else if(p==='wundermap'){body=`<div class="map-empty"><div><strong>WunderMap</strong>WunderMap is opened externally because its embedded page is not reliable in Home Assistant.<br><small>Open the live WunderMap in a new tab.</small></div></div>`;credit='Weather Underground';link=`<a class="map-link" href="${this._wunderUrl()}" target="_blank" rel="noopener">Open WunderMap ↗</a>`}
+    else{body=`<div class="map-empty"><div><strong>SAT24</strong>Satellite coverage is available on the external SAT24 site, but its page does not reliably allow embedded dashboards.<br><small>Use the Radar tab for the in-card map.</small></div></div>`;credit='SAT24';link=`<a class="map-link" href="${this.config.sat24_url}" target="_blank" rel="noopener">Open SAT24 ↗</a>`}
     return`<div class="map-tabs">${tabs}</div>${body}<div class="map-controls"><div class="map-buttons">${p==='radar'?'<button class="map-btn" data-map-action="prev">◀</button><button class="map-btn" data-map-action="next">▶</button><button class="map-btn" data-map-action="zoomout">−</button><button class="map-btn" data-map-action="zoomin">+</button>':''}</div><span class="panel-subtitle">${credit}</span>${link}</div>`
   }
 
