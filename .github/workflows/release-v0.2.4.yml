@@ -10,11 +10,19 @@ permissions:
 
 jobs:
   release:
-    if: contains(github.event.head_commit.message, '[release-v0.2.4]')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Check whether release already exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v0.2.4 --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo 'Release v0.2.4 already exists; nothing to do.'
+            exit 0
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -22,7 +30,10 @@ jobs:
           node-version: 22
 
       - name: Set release version
-        run: sed -i 's/"version": "[^"]*"/"version": "0.2.4"/' package.json
+        run: |
+          sed -i 's/"version": "[^"]*"/"version": "0.2.4"/' package.json
+          sed -i 's/\*\*v0.2.3 — bundled background loader fix\*\*/**v0.2.4 — layout redesign and expanded weather backgrounds**/' README.md
+          sed -i 's#@v0.2.3/backgrounds/#@main/backgrounds/#g' README.md
 
       - name: Build distribution
         run: npm run build
