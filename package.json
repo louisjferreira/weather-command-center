@@ -1,6 +1,6 @@
 {
   "name": "weather-command-center",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "description": "Home Assistant Weather Command Center custom card",
   "scripts": {
